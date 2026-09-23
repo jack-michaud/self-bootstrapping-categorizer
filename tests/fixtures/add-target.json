@@ -1,0 +1,102 @@
+{
+  "phase": "record-synthetic-record-v7",
+  "payload": {
+    "taxonomy": [
+      {
+        "id": "known-0",
+        "name": "Existing task 0",
+        "description": "Synthetic existing task 0; excludes composing a poem."
+      },
+      {
+        "id": "known-1",
+        "name": "Existing task 1",
+        "description": "Synthetic existing task 1; excludes composing a poem."
+      },
+      {
+        "id": "known-2",
+        "name": "Existing task 2",
+        "description": "Synthetic existing task 2; excludes composing a poem."
+      },
+      {
+        "id": "known-3",
+        "name": "Existing task 3",
+        "description": "Synthetic existing task 3; excludes composing a poem."
+      },
+      {
+        "id": "known-4",
+        "name": "Existing task 4",
+        "description": "Synthetic existing task 4; excludes composing a poem."
+      },
+      {
+        "id": "known-5",
+        "name": "Existing task 5",
+        "description": "Synthetic existing task 5; excludes composing a poem."
+      },
+      {
+        "id": "known-6",
+        "name": "Existing task 6",
+        "description": "Synthetic existing task 6; excludes composing a poem."
+      },
+      {
+        "id": "known-7",
+        "name": "Existing task 7",
+        "description": "Synthetic existing task 7; excludes composing a poem."
+      },
+      {
+        "id": "known-8",
+        "name": "Existing task 8",
+        "description": "Synthetic existing task 8; excludes composing a poem."
+      },
+      {
+        "id": "known-9",
+        "name": "Existing task 9",
+        "description": "Synthetic existing task 9; excludes composing a poem."
+      },
+      {
+        "id": "known-10",
+        "name": "Existing task 10",
+        "description": "Synthetic existing task 10; excludes composing a poem."
+      },
+      {
+        "id": "known-11",
+        "name": "Existing task 11",
+        "description": "Synthetic existing task 11; excludes composing a poem."
+      },
+      {
+        "id": "known-12",
+        "name": "Existing task 12",
+        "description": "Synthetic existing task 12; excludes composing a poem."
+      },
+      {
+        "id": "known-13",
+        "name": "Existing task 13",
+        "description": "Synthetic existing task 13; excludes composing a poem."
+      },
+      {
+        "id": "known-14",
+        "name": "Existing task 14",
+        "description": "Synthetic existing task 14; excludes composing a poem."
+      },
+      {
+        "id": "known-15",
+        "name": "Existing task 15",
+        "description": "Synthetic existing task 15; excludes composing a poem."
+      }
+    ],
+    "examples": [
+      {
+        "record": {
+          "id": "synthetic-record",
+          "text": "Compose an original poem about a garden."
+        }
+      }
+    ]
+  },
+  "response": {
+    "text": "{\"actions\":[{\"op\":\"add\",\"target\":\"task-v8-1\",\"sources\":[],\"name\":\"Compose a poem\",\"description\":\"Write an original poem; excludes editing an existing poem.\",\"evidence\":[\"synthetic-record\"],\"reason\":\"The synthetic record explicitly requests an original poem.\"}]}",
+    "model": "curator-fixture",
+    "raw": {
+      "stopReason": "stop"
+    }
+  }
+}

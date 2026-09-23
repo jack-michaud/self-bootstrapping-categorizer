@@ -1,0 +1,12 @@
+node_modules/
+runs/
+exports/
+.env*
+*.tmp
+__pycache__/
+*.pyc
+# Keep private experiment data and operational records out of this export.
+data/
+evals/
+verification/
+pm-*.json

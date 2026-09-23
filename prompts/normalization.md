@@ -1,0 +1,1 @@
+Map the generated category name AND definition to a reference task by semantic equivalence of the concrete outcome and scope, not shared words or domain. A broad bucket spanning distinct reference tasks is ambiguous, not an arbitrary match. A different task is no_match. Do not infer any item's expected answer.

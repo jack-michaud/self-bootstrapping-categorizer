@@ -1,0 +1,9 @@
+{
+  "curatorBackend": "hermes-native",
+  "curatorProvider": "openai-codex",
+  "curatorModel": "gpt-6-astra",
+  "jevModel": "jev-latest",
+  "maxCategories": 100,
+  "maxCalls": 150,
+  "sampleSize": 40
+}
