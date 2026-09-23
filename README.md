@@ -2,6 +2,8 @@
 
 A standalone Bun/TypeScript CLI and small library for discovering task categories in text records. A tool-free curator proposes categories; TypeSafe Jev supplies independent typed judgments; code owns validation, budgets, checkpoints and evaluation. This is an experimental categorizer, **not a validated high-accuracy classifier**.
 
+See [the project vision and design](vision.md) for product intent, judgment semantics, the roll-forward state machine, isolation and evaluation boundaries.
+
 ## Install and test
 
 Requires **Bun 1.3.14**. The offline subprocess tests also require Python 3 at `/usr/bin/python3` and POSIX process/symlink support (tested on Linux).
