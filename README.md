@@ -1,99 +1,127 @@
 # Self-Bootstrapping Categorizer
 
-A standalone Bun/TypeScript CLI and small library for discovering task categories in text records. A tool-free curator proposes categories; TypeSafe Jev supplies independent typed judgments; code owns validation, budgets, checkpoints and evaluation. This is an experimental categorizer, **not a validated high-accuracy classifier**.
+Discover useful task categories in arbitrary text without deciding the whole taxonomy first. This standalone Bun/TypeScript CLI pairs a reasoning-model curator with TypeSafe Jev: the curator proposes **names and definitions**, Jev judges records against those definitions, and ordinary code controls the workflow.
 
-See [the project vision and design](vision.md) for product intent, judgment semantics, the roll-forward state machine, isolation and evaluation boundaries.
+## Why discover categories?
 
-## Install and test
+A collection of support tickets, project requests or research abstracts often contains recurring tasks that its existing labels hide. Grouping by subject, tool or writing style can put unrelated outcomes together: refunding a payment and changing an invoice address both concern billing, but completing one does not complete the other.
 
-Requires **Bun 1.3.14**. The offline subprocess tests also require Python 3 at `/usr/bin/python3` and POSIX process/symlink support (tested on Linux).
+The goal is to group **concrete tasks and outcomes**, including equivalent tasks expressed differently across domains. Categories have definitions with inclusions and exclusions, not just catchy names. A record can support several tasks while still having one primary task for browsing. This is a prompt-level goal—not something schema validation can guarantee.
+
+## How classification works
+
+1. **Start small.** The curator reads a bounded, reproducible sample and proposes at most 10 initial categories (fewer if the total limit is smaller). You can supply your own categories instead. Limits are ceilings, not quotas.
+2. **Ask independent questions.** For each record, Jev returns a broad-domain **Choice**, a primary-task **Choice**, one membership **Noul** per known task, and a coverage-gap Noul for a substantive task outside all current definitions. Tasks are not filtered by domain; Choices do not consume sibling Noul answers.
+3. **Respond to primary Other immediately.** A clear task outside the known definitions sends that record, its judgment and the current taxonomy to the curator. The curator may propose evidence-backed additions or no change. Other is a discovery signal, not proof of novelty.
+4. **Validate, checkpoint, move forward.** Code checks proposal structure, evidence references, uniqueness and category limits. Growth is add-only: existing names and definitions stay unchanged. After an accepted addition, retry **only the triggering record once**, then continue in input order. There is **no model reviewer, historical replay or final consistency pass**.
+
+### Why keep probabilities instead of just labels?
+
+A Choice answers “which one?” and retains its full probability distribution plus a separate `confidence`. A Noul answers an independent yes/no question with a probability of yes: low membership means **likely nonmembership**, not uncertainty; values near the middle suggest ambiguity. Several tasks can have high membership even when only one is primary.
+
+Keeping these signals separate exposes disagreements. Compare Other with the **maximum** known-task membership, not an average across unrelated categories. Coverage gaps and disagreement flags aid inspection, but **only primary-task Other triggers discovery**.
+
+**Unclear** means insufficient evidence or no unique primary task. It does not automatically create a category. Neither low Other counts nor confident judgments establish correctness. See the [vision and design](vision.md) for the full semantics and tradeoffs.
+
+## Install and run
+
+Requires **Bun 1.3.14**. Clone the source and install its dependencies; there is no published package to install.
 
 ```sh
+git clone https://github.com/jack-michaud/self-bootstrapping-categorizer.git
+cd self-bootstrapping-categorizer
 bun install --frozen-lockfile
-bun test
-bun run typecheck
 bun src/cli.ts help
 ```
 
-Dependencies are pinned in `package.json` and `bun.lock`; package-registry publication is disabled with `private: true`. Tests use synthetic records, injected providers, loopback HTTP and a synthetic Python runtime. They do not require provider credentials or make live model calls. See [publication scope](docs/publication.md) for test coverage and excluded private experiments.
+For live classification, supply `TYPESAFE_API_KEY` through your environment/credential manager. Discovery also needs a separately installed, compatible Hermes Python runtime with existing OpenAI Codex authentication. The default runtime location is `~/.hermes/hermes-agent` with `venv/bin/python`; set `hermesRuntimePath` in the JSON config if yours differs.
 
-## Roll-forward discovery
-
-1. Generate at most `min(10, maxCategories)` initial categories from a bounded hash-selected sample, or provide manual initial categories. The default total ceiling is 100; `maxCategories` must be an integer from 1 to 253. These are ceilings, not quotas.
-2. Classify each record in input order. Preserve independent broad-domain and primary-task Choices, one membership Noul per known task, and an uncovered-task Noul. Tasks are not domain-prefiltered. Low membership Noul means likely nonmembership, not uncertainty.
-3. A primary **Other** immediately sends the current record, its judgment and the current taxonomy to the curator. Other is a discovery signal, not proof that a new category is justified. **Unclear** denotes insufficient evidence or no unique primary task and does not trigger category creation.
-4. Strictly parse the entire JSON proposal and validate add-only actions, evidence, unique names/IDs, reserved names and the resulting category count. Existing category IDs and definitions are immutable. No runtime model reviewer runs.
-5. In this add-only workflow, a nonempty string `target` is meaningless because code generates the ID: clear it **only after strict schema parsing**, and journal the original target and zero-based action index in `ignoredAddTargets`. Raw provider responses remain preserved. Missing/non-string targets, nonempty sources, invalid evidence and non-add actions still fail. The legacy `applyProposal` library utility remains strict and does not perform this cleanup.
-6. Atomically checkpoint accepted additions with retry intent, then retry **only the triggering record once**. An empty proposal or a still-Other retry advances to the next record. Never revisit earlier assignments and never run a final consistency sweep.
-
-Each assignment retains the taxonomy version it actually saw. Completion means input exhaustion, not ontology convergence. At the category ceiling, an Other record skips curator dispatch and processing continues within the call budget; terminal status is `limited` / `category_limit`. `maxCalls` counts persisted attempts, including failures. `maxRounds`, `review` and `--reviewer-prompt` are deprecated compatibility/provenance fields and do not enable runtime review or rounds.
-
-## Inputs and use
-
-Input is JSONL: one `{id,text,metadata?}` object per line. IDs must be unique; text must be nonempty and at most 12,000 characters. Unknown top-level fields are rejected. Metadata is optional JSON; the CLI does not dereference its paths/URLs or execute record instructions. Never include evaluation answers in classifier inputs.
-
-```json
-{"id":"document-1","text":"Draft an explanatory essay from a topic and outline."}
-```
-
-Manual categories are arrays of `{id,name,description}` with unique IDs/names and explicit scope/exclusions. They can exceed the generated seed ceiling, but must fit the total ceiling. Examples in this repository are synthetic.
-
-Set `TYPESAFE_API_KEY` in the calling environment through your credential manager. Do not place secrets in JSON config, command arguments or Git. **`--allow-external` permits sending input text, metadata and prompts to external providers and may incur charges.**
+The [checked-in discovery config](examples/discovery-config.json) explicitly selects `hermes-native` / `openai-codex` / `gpt-6-astra`, rather than the underlying `gpt-5.4` default. Choose a model available to your account; availability is not guaranteed. Native calls use fresh, tool-free contexts, not a persistent agent conversation. Installing CLI dependencies does **not** install or execute skills described in source records.
 
 ```sh
-# Fixed taxonomy: Jev only; no curator runtime/auth needed.
-bun src/cli.ts run --input examples/records.jsonl --run-dir runs/assessment \
-  --categories examples/categories.json --mode assessment --allow-external
-
-# Self-bootstrap: configure an available curator model and backend first.
 bun src/cli.ts run --input examples/records.jsonl --run-dir runs/discovery \
   --config examples/discovery-config.json --max-categories 100 --allow-external
-
-bun src/cli.ts inspect --run-dir runs/discovery
-bun src/cli.ts resume --run-dir runs/discovery --allow-external
-mkdir -p exports
-bun src/cli.ts export --run-dir runs/discovery --out exports/discovery
 ```
 
-Run directories must be new for `run`; `export` requires a new output directory and an existing parent (for the example, first `mkdir -p exports`). `--input -` accepts stdin. Manual categories in discovery skip seed generation but still allow immediate Other-triggered additions. Customize `--seed-prompt`, `--curator-prompt` and `--judgment-prompt` as needed.
+**`--allow-external` permits sending records, metadata and prompts to providers and may incur charges.** Keep credentials out of config files and Git. The example config allows 150 provider attempts, including failures; set `maxCalls` for your workload. The total category ceiling defaults to 100 and accepts integers from 1 to 253.
 
-Snapshots bind input, config, prompts, source and adapter/runtime identities. Successful identical calls are cached within the run; failures consume budget and stop with durable evidence. `resume` checks the frozen source and uses the saved configuration. Source changes require a new run or restoring the original source; this export is not a migration tool for private historical runs. After an abnormal exit a stale `.lock` may require operator reconciliation: do not remove it unless the owning process is confirmed dead. There is no exactly-once provider billing guarantee.
+Input is JSONL: one object per line, with a unique `id`, nonempty `text` (up to 12,000 characters), and optional JSON-object `metadata`. Unknown top-level fields are rejected. Text is treated as data; the CLI does not follow record URLs or execute their instructions.
 
-Run manifests and exports contain original text, metadata, raw model responses and local provenance paths. Treat them as sensitive; review before sharing and keep them outside Git.
+```jsonl
+{"id":"ticket-1","text":"Please refund the duplicate payment on my last order."}
+{"id":"ticket-2","text":"Update the billing address used for future invoices."}
+```
 
-## Providers and configuration
+Save your records as `records.jsonl` and substitute that path for the bundled synthetic example. `--input -` reads stdin. Each `run` needs a new run directory.
 
-`--config` accepts strict JSON. The [example](examples/discovery-config.json) selects `hermes-native` / `openai-codex` / `gpt-6-astra`; model availability depends on your account, and the example is not an availability guarantee. The underlying default curator model remains `gpt-5.4`; explicitly select an available model.
+### CLI essentials
 
-- **`hermes-native` (default):** requires a separately installed, trusted Hermes Python runtime and its existing authentication. Default runtime root: `~/.hermes/hermes-agent`, with `venv/bin/python`; override `hermesRuntimePath` for another installation. The adapter requires the native `resolve_provider_client(..., raw_codex=True)` interface and currently supports only `openai-codex`. Each call uses a fresh subprocess, empty temporary cwd, environment allowlist, direct Responses request, `tools: []`, `store: false`, and zero inference retries. It does not instantiate a persistent agent/session or load skills/memory into model context. Runtime/API compatibility can change.
-- **`pi`:** uses the pinned SDK with fresh one-message context, `tools: []` and existing Pi authentication. Configure a supported provider/model and authenticate separately. Pi imports and auth are not loaded when Hermes is selected.
-- **`hermes-chat`:** deliberately fail-closed; the adapter does not rely on unsupported CLI empty-toolset tricks or silently fall back to chat.
+These are the core forms from `bun src/cli.ts help` (prefix each with `bun src/cli.ts`):
 
-Useful defaults: `jevModel: "jev-latest"`, `maxCalls: 200`, `sampleSize: 40`, `timeoutMs: 120000`, `maxOutputBytes: 262144`, `maxTokens: 8000`, `mode: "discovery"`. Prefer a versioned Jev model for reproducible experiments; an explicit version must match the first response, while an explicitly selected alias resolves and pins once. All later calls reject model drift. Consult [the strict config schema](src/contracts.ts) for every field and bound.
+```text
+run --input records.jsonl|- --run-dir runs/new [--config config.json]
+    [--categories categories.json] [--seed-prompt file] [--curator-prompt file]
+    [--judgment-prompt file] [--mode discovery|assessment] --allow-external
+resume --run-dir runs/existing --allow-external
+inspect --run-dir runs/existing
+export --run-dir runs/existing --out new-directory
+```
 
-Native calls have wall-clock, stream-byte and final-output-byte bounds; `maxTokens` applies to Pi only, **not the native Codex endpoint**. These controls are not a token/billing guarantee or an adversarial OS sandbox. Jev uses `https://api.typesafe.ai/v1/systemone` by default. A custom `jevUrl` receives your TypeSafe key; use only trusted endpoints. Redirects are refused.
+For a fixed taxonomy, use `--categories examples/categories.json --mode assessment` on `run`: Jev only, with no curator runtime/auth required. Manual categories are an array of `{id,name,description}`. In discovery mode, they skip seed generation but still allow additions. Full help also covers separate `eval`, `eval-resume` and `triplet` commands; deprecated reviewer/round settings do not enable a review stage.
 
-Library entrypoints live in `src/contracts.ts`, `src/workflow.ts`, `src/evaluation.ts`, `src/store.ts` and `src/providers.ts`. Provider implementations are injectable trusted application code, not plugins selected by input records.
+## Example categorization briefs
+
+Prompts are **files passed to the CLI**, not interactive chat commands. Start with copies of the [seed](prompts/seed.md), [curator](prompts/curator.md) and [judgment](prompts/judgment.md) prompts, then append the same corpus-specific brief to all three. Preserve their evidence, independence and add-only instructions.
+
+| Corpus | Brief to append |
+|---|---|
+| Support tickets | “Group requests by the concrete resolution the customer needs, not product area or sentiment. Keep refunding a payment distinct from updating billing details. Do not infer a requested action from a vague complaint.” |
+| Project requests | “Group by the deliverable that would satisfy the request, not department or software mentioned. Producing a forecast and building a reporting dashboard are distinct outcomes, even when they use the same data.” |
+| Research abstracts | “Group by the concrete research task or outcome claimed, not the field or writing style. Distinguish measuring a phenomenon from predicting it. If the abstract gives no clear task, preserve Unclear rather than inventing one.” |
+
+For example, copy the prompts, append the support-ticket brief in your editor, and save the JSONL above as `records.jsonl`:
+
+```sh
+cp prompts/seed.md seed-custom.md
+cp prompts/curator.md curator-custom.md
+cp prompts/judgment.md judgment-custom.md
+# Append your brief to each copied file before running.
+bun src/cli.ts run --input records.jsonl --run-dir runs/tickets \
+  --config examples/discovery-config.json \
+  --seed-prompt seed-custom.md --curator-prompt curator-custom.md \
+  --judgment-prompt judgment-custom.md --allow-external
+```
+
+These are starting instructions, not promised category names or accuracy results. The curator must still ground its proposals in the supplied records. Keep expected evaluation answers out of these inputs and prompts.
+
+## Inspect and export results
+
+```sh
+bun src/cli.ts inspect --run-dir runs/discovery
+mkdir -p exports
+bun src/cli.ts export --run-dir runs/discovery --out exports/discovery
+# Continue an interrupted run using its frozen inputs/configuration:
+bun src/cli.ts resume --run-dir runs/discovery --allow-external
+```
+
+`inspect` shows status, stop reason, pinned models and call count—not a per-record report. Export creates a **new** directory; its parent must already exist. Open the exported JSON files in your editor or JSON viewer:
+
+- **`assignments.json`**: each record's primary/domain labels, `supportedTasks`, membership probabilities, coverage gap, Choice distributions/confidence, diagnostic flags and `taxonomyVersion`.
+- **`taxonomies.json`**: category IDs, names and definitions at every version. Read each assignment against the version it actually saw, not just the final vocabulary. Earlier assignments are intentionally not rewritten.
+- **`unresolved.json`**: flagged assignments at workflow completion, including Other, Unclear and signal disagreements—not just missing categories. For an interrupted run, inspect current assignments and progress in the manifest too.
+- **`decisions.json`**: accepted proposals and validation decisions. **`assessments.json`** holds fixed-taxonomy assessment snapshots (normally empty for discovery).
+- **`manifest.json`**: the full snapshot, original records, configuration/prompts, progress and call journal with requests, raw responses and failures. Assignment `evidenceKey` links to a call's `key`. The live run keeps this same journal at `runs/discovery/manifest.json`.
+
+Count completed records from `data.progress` entries with `stage: "done"`; an assignment can exist while discovery/retry is still pending. `complete` means inputs exhausted, not a correct or converged taxonomy. `limited` and `blocked` identify budget/category limits or provider/validation failures. Other and Unclear can remain after completion.
+
+Resume checks frozen source, prompts/configuration and adapter/runtime identities; it is not a way to silently change policy mid-run. Do not remove a stale lock without confirming its owner is dead. Runs and exports contain original text, raw responses and local paths: treat them as sensitive and keep them out of Git.
 
 ## Evaluation and known limitations
 
-A separate Jev normalization judge maps generated category definitions to supplied reference labels; expected per-record labels/rationales do not enter classifier, curator or normalization-judge requests. Normalization requires the selected option's `probabilities[choice] >= 0.95` by default, not its separate confidence field. Abstentions remain in the accuracy denominator and do not earn invalid-label agreement. Membership Nouls use separate policies.
+This is an **experimental categorizer, not a validated high-accuracy classifier**. Input order, seed coverage, category granularity and immutable early decisions matter. Add-only growth cannot repair an overly broad initial category. Deterministic validation checks structure, not semantic correctness; model isolation is not an adversarial OS sandbox.
 
-```sh
-bun src/cli.ts eval --run-dir runs/assessment --truth examples/truth.json \
-  --eval-dir runs/assessment-eval --allow-external
-# For three fresh, same-configuration bootstrap runs and their completed evaluations:
-# bun src/cli.ts triplet --eval-dirs runs/eval-a,runs/eval-b,runs/eval-c
-```
+Historical experiments—not rerun publication tests—failed the three-run quality gate: **90%, 100%, 100% accuracy and 90% all-three agreement**, against a 95% requirement for each. A later authorized run processed 2,664 records, but review identified 1,716 misbucketed into “Command and capability reference.” Completion and low Other counts were not quality success. Private benchmark/corpus evidence is not redistributed, so these historical observations are not independently reproducible from this export.
 
-The triplet gate requires at least 95% accuracy in each run and at least 95% valid all-three agreement. Mixed-version assignments are scored only when the selected category existed at the recorded version with the same definition. Automated normalization is not independent human validation; broad categories can hide task conflation.
+Offline checks: `bun test` and `bun run typecheck`. Subprocess tests need Python 3 at `/usr/bin/python3` and POSIX support (tested on Linux); they use synthetic fixtures, not live model calls. See [publication scope](docs/publication.md) for coverage, [vision](vision.md#evaluation-is-separate-from-discovery) for evaluation policy, and the [config schema](src/contracts.ts) for settings. Optional Pi authentication, native-runtime compatibility and execution bounds are described in the [adapter design](vision.md#isolated-curator-adapters).
 
-**Historical observations, not rerun publication tests:**
-
-- The prior roll-forward benchmark scored **90%, 100%, 100% accuracy and 90% all-three agreement: FAIL**. Subsequent full-corpus execution was explicitly authorized despite that failed gate; it does not retroactively pass the benchmark.
-- The later full-corpus roll-forward-v2 run completed **2,664 records**, with **2,141 known-category assignments, 521 Unclear, 2 Other, 73 categories and 2,783 provider calls**. Review identified **1,716 records misbucketed into “Command and capability reference.”** Processing completion is therefore **not categorization-quality success**, and this repository makes no broad accuracy claim.
-- Prompt/threshold work informed by benchmark inspection is not held-out validation. Input order, seed sampling, taxonomy granularity and immutable early assignments can materially affect outcomes. A low Other count alone does not demonstrate a useful taxonomy.
-
-Private corpus, benchmark source material and raw experiment evidence are intentionally not redistributed. These historical aggregate observations cannot be independently reproduced from this source-only export alone. Publication verification exercises software contracts, not live model quality.
-
-No license has been selected or added. Public visibility is not a grant of an open-source license; separately installed dependencies retain their own licenses.
+No license has been selected. Public visibility is not an open-source license grant; dependencies retain their own licenses.
