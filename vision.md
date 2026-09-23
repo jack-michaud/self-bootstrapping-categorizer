@@ -2,7 +2,7 @@
 
 ## Purpose and scope
 
-Discover useful task categories for arbitrary text without requiring the user to know the complete taxonomy in advance. A reasoning-model curator proposes evidence-backed categories; TypeSafe Jev supplies typed judgments; ordinary code owns execution and validation. The product is a standalone, resumable Bun/TypeScript CLI and library, not a persistent agent conversation or hosted service.
+Discover useful categories for arbitrary text without requiring the user to know the complete taxonomy in advance. A reasoning-model curator proposes evidence-backed categories; TypeSafe Jev supplies typed judgments; ordinary code owns execution and validation. The product is a standalone, resumable Bun/TypeScript CLI and library, not a persistent agent conversation or hosted service.
 
 This document adapts the original project vision for public distribution and describes the published implementation. The skill-categorization experiments motivated the design but are not hardcoded product behavior. Private corpus text, benchmark answers, experiment artifacts and project-management details are not redistributed. See the [README](README.md) for operation and observed limitations, and [publication scope](docs/publication.md) for what is included.
 
@@ -17,7 +17,7 @@ This document adapts the original project vision for public distribution and des
 - Support `run`, `resume`, `inspect` and `export`, with versioned taxonomies, assignments, probabilities, proposals, decisions and call evidence.
 - Require explicit consent through `--allow-external` before sending records, metadata and prompts to providers.
 
-Categories should describe concrete outcomes, not merely subject areas, tools or presentation styles. Two independently requested deliverables should not be merged just because they share a domain or workflow. Multiple supported tasks may coexist with one primary task used for browsing. These are prompt-level semantic goals, not properties that schema validation can prove.
+The bundled prompts and judgment questions favor concrete task/outcome categories, with multiple supported tasks and one primary task for browsing. That orientation grew out of the [Claude-skills case study](evals/skill-categorizer-by-task/README.md), not a universal task taxonomy. Users can configure prompts and category definitions, but should account for the task-oriented wording retained in the current judgment protocol. Semantic suitability cannot be proved by schema validation.
 
 ## Roles and authority
 
