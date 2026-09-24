@@ -1,49 +1,144 @@
-import {readFileSync,readdirSync,mkdirSync,writeFileSync} from 'node:fs';
-import {join,resolve} from 'node:path';
+import {readFileSync, readdirSync, mkdirSync, writeFileSync} from 'node:fs';
+import {join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {z} from 'zod';
-import {Config,ProviderConfig,records,validateJev,type Request} from '../contracts.ts';
-import {Store,hash,type Journal} from '../store.ts';
-import {providers,type Providers} from '../providers.ts';
-import {Policy,Definition} from '../domain/trie.ts';
+import {Config, ProviderConfig, records, validateJev, type Request} from '../contracts.ts';
+import {Store, hash, type Journal} from '../store.ts';
+import {providers, type Providers} from '../providers.ts';
+import {Policy, Definition} from '../domain/trie.ts';
 import {prompts} from '../domain/prompts.ts';
-import {initialState,runTrie,type Snapshot,type State,type Ports} from '../application/trie.ts';
-const root=fileURLToPath(new URL('../../',import.meta.url));
-const Settings=z.object({policy:Policy.default(Policy.parse({})),provider:ProviderConfig.default(ProviderConfig.parse({})),prompts:z.object({seed:z.string().min(1),curator:z.string().min(1),judgment:z.string().min(1)}).strict().partial().default({})}).strict();
-export function policySource(){
- const paths=['package.json','bun.lock','src/contracts.ts','src/cli.ts','src/application/trie.ts','src/infrastructure/trie.ts','src/providers.ts','src/curators.ts','src/hermes_native.py','src/store.ts',...readdirSync(join(root,'src/domain')).filter(n=>n.endsWith('.ts')).map(n=>'src/domain/'+n)];
- return Object.fromEntries(paths.sort().map(p=>[p,readFileSync(join(root,p),'utf8')]));
+import {initialState, runTrie, type Snapshot, type State, type Ports} from '../application/trie.ts';
+
+const root = fileURLToPath(new URL('../../', import.meta.url));
+const Settings = z.object({
+  policy: Policy.default(Policy.parse({})),
+  provider: ProviderConfig.default(ProviderConfig.parse({})),
+  prompts: z.object({
+    seed: z.string().min(1),
+    curator: z.string().min(1),
+    judgment: z.string().min(1),
+  }).strict().partial().default({}),
+}).strict();
+
+function domainSourcePaths(directory = 'src/domain'): string[] {
+  return readdirSync(join(root, directory), {withFileTypes: true}).flatMap(entry => {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) return domainSourcePaths(path);
+    return entry.isFile() && entry.name.endsWith('.ts') ? [path] : [];
+  });
 }
-function checkSnapshot(m:Journal<Snapshot>){
- if(m.schema!==1||m.snapshot.kind!=='trie'||hash(m.snapshot)!==m.snapshotHash)throw Error('invalid trie snapshot');
- if(hash({source:m.snapshot.policySource,policy:m.snapshot.policy,prompts:m.snapshot.prompts})!==m.snapshot.policyHash)throw Error('policy snapshot integrity mismatch');
+
+export function policySource() {
+  const paths = [
+    'package.json',
+    'bun.lock',
+    'src/contracts.ts',
+    'src/cli.ts',
+    'src/application/trie.ts',
+    'src/infrastructure/trie.ts',
+    'src/providers.ts',
+    'src/curators.ts',
+    'src/hermes_native.py',
+    'src/store.ts',
+    ...domainSourcePaths(),
+  ];
+  return Object.fromEntries(
+    paths.sort().map(path => [path, readFileSync(join(root, path), 'utf8')]),
+  );
 }
-export function readTrie(dir:string):Journal<Snapshot>{const m=JSON.parse(readFileSync(join(dir,'manifest.json'),'utf8'));checkSnapshot(m);return m;}
-export function triePorts(store:Store<Snapshot>,provider:Providers):Ports{
- const cfg=Config.parse(store.state.snapshot.config);
- return {save:()=>store.save(),async judge(request,maxCalls){
-  const req={...request,model:store.state.pins.jev??request.model};
-  const raw=await store.call('trie:jev',req,maxCalls,()=>provider.jev(req));
-  const r=validateJev(raw,req);
-  if((req.model!=='jev-latest'&&r.model!==req.model)||r.model.endsWith('latest'))throw Error('Jev model identity mismatch');
-  if(!store.state.pins.jev){
-   store.state.pins.jev=r.model;
-   const call=store.state.calls.at(-1)!;
-   call.key=hash({run:store.state.id,snapshot:store.state.snapshotHash,kind:'trie:jev',request:{...req,model:r.model}});store.save();
+
+function checkSnapshot(manifest: Journal<Snapshot>): void {
+  if (manifest.schema !== 1 || manifest.snapshot.kind !== 'trie' || hash(manifest.snapshot) !== manifest.snapshotHash) {
+    throw Error('invalid trie snapshot');
   }
-  return r;
- },async curate(phase,system,payload,maxCalls){
-  if(hash(provider.curatorIdentity?.()??null)!==hash(store.state.snapshot.curatorIdentity??null))throw Error('curator runtime identity changed');
-  const response=await store.call('trie:'+phase,{system,payload},maxCalls,()=>provider.curate(system,payload));
-  if(response.model!==cfg.curatorModel)throw Error('curator model identity mismatch');
-  const stopReason=(response.raw as {stopReason?:string})?.stopReason;
-  if(stopReason&&stopReason!=='stop')throw Error('curator did not finish');
-  if(typeof response.text!=='string'||Buffer.byteLength(response.text)>cfg.maxOutputBytes)throw Error('curator output limit');
-  store.state.pins.curator=response.model;store.save();return response.text;
- }};
+  if (hash({
+    source: manifest.snapshot.policySource,
+    policy: manifest.snapshot.policy,
+    prompts: manifest.snapshot.prompts,
+  }) !== manifest.snapshot.policyHash) {
+    throw Error('policy snapshot integrity mismatch');
+  }
 }
-export const trieHelp=`Trie categorizer (separate from legacy flat mode)
+
+export function readTrie(dir: string): Journal<Snapshot> {
+  const manifest = JSON.parse(readFileSync(join(dir, 'manifest.json'), 'utf8'));
+  checkSnapshot(manifest);
+  return manifest;
+}
+
+async function judgeWithStore(
+  store: Store<Snapshot>,
+  provider: Providers,
+  request: Request,
+  maxCalls: number,
+) {
+  const pinnedRequest = {...request, model: store.state.pins.jev ?? request.model};
+  const raw = await store.call('trie:jev', pinnedRequest, maxCalls, () => provider.jev(pinnedRequest));
+  const result = validateJev(raw, pinnedRequest);
+
+  if ((pinnedRequest.model !== 'jev-latest' && result.model !== pinnedRequest.model) || result.model.endsWith('latest')) {
+    throw Error('Jev model identity mismatch');
+  }
+
+  if (!store.state.pins.jev) {
+    store.state.pins.jev = result.model;
+    const call = store.state.calls.at(-1)!;
+    call.key = hash({
+      run: store.state.id,
+      snapshot: store.state.snapshotHash,
+      kind: 'trie:jev',
+      request: {...pinnedRequest, model: result.model},
+    });
+    store.save();
+  }
+
+  return result;
+}
+
+async function curateWithStore(
+  store: Store<Snapshot>,
+  provider: Providers,
+  config: Config,
+  phase: 'seed' | 'child',
+  system: string,
+  payload: unknown,
+  maxCalls: number,
+): Promise<string> {
+  if (hash(provider.curatorIdentity?.() ?? null) !== hash(store.state.snapshot.curatorIdentity ?? null)) {
+    throw Error('curator runtime identity changed');
+  }
+
+  const response = await store.call(
+    'trie:' + phase,
+    {system, payload},
+    maxCalls,
+    () => provider.curate(system, payload),
+  );
+  if (response.model !== config.curatorModel) throw Error('curator model identity mismatch');
+
+  const stopReason = (response.raw as {stopReason?: string})?.stopReason;
+  if (stopReason && stopReason !== 'stop') throw Error('curator did not finish');
+  if (typeof response.text !== 'string' || Buffer.byteLength(response.text) > config.maxOutputBytes) {
+    throw Error('curator output limit');
+  }
+
+  store.state.pins.curator = response.model;
+  store.save();
+  return response.text;
+}
+
+export function triePorts(store: Store<Snapshot>, provider: Providers): Ports {
+  const config = Config.parse(store.state.snapshot.config);
+  return {
+    save: () => store.save(),
+    judge: (request, maxCalls) => judgeWithStore(store, provider, request, maxCalls),
+    curate: (phase, system, payload, maxCalls) =>
+      curateWithStore(store, provider, config, phase, system, payload, maxCalls),
+  };
+}
+
+export const trieHelp = `Trie categorizer (separate from legacy flat mode)
 trie run --input records.jsonl|- --run-dir runs/new [--config config.json]
          [--categories primary-definitions.json] --allow-external
 trie resume --run-dir runs/existing --allow-external
@@ -54,42 +149,180 @@ Manual primary definitions: [{name,description}], no IDs; code creates path IDs.
 No external calls without consent. Blocked semantic/provider failures remain blocked;
 resume continues interrupted work, not failed judgments. Create a fresh run after repair.
 `;
-export async function trieMain(args:string[],factory:(config:Config)=>Providers=providers){
- const command=args[0];if(!command||['help','--help','-h'].includes(command)){console.log(trieHelp);return;}
- const {values:v}=parseArgs({args:args.slice(1),strict:true,options:{input:{type:'string'},'run-dir':{type:'string'},config:{type:'string'},categories:{type:'string'},out:{type:'string'},'allow-external':{type:'boolean'}}});
- const required=(key:'run-dir'|'input'|'out')=>{const value=v[key];if(!value)throw Error(`--${key} required`);return value;};
- const load=(path:string)=>JSON.parse(readFileSync(path,'utf8'));
- const dir=required('run-dir');
- if(command==='inspect'||command==='export'){
-  const m=readTrie(dir),d=m.data.trie as State;
-  if(command==='inspect')console.log(JSON.stringify({id:m.id,status:d?.status,stopReason:d?.stopReason,error:d?.error,calls:m.calls.length,completed:d?.cursor,policyHash:m.snapshot.policyHash},null,2));
-  else{
-   const out=required('out');mkdirSync(out,{mode:0o700});
-   for(const [name,value] of Object.entries({manifest:m,taxonomies:d.taxonomies,assignments:d.progress.map(p=>({...p,metadata:m.snapshot.inputs.find(r=>r.id===p.recordId)?.metadata})),decisions:d.decisions}))writeFileSync(join(out,name+'.json'),JSON.stringify(value,null,2)+'\n',{mode:0o600,flag:'wx'});
-   console.log(out);
-  }return;
- }
- if(!['run','resume'].includes(command))throw Error('unknown trie command');
- if(!v['allow-external'])throw Error('--allow-external required: inputs/prompts sent to external providers');
- let store:Store<Snapshot>;let provider:Providers;
- if(command==='run'){
-  const settings=Settings.parse(v.config?load(v.config):{}),config=Config.parse(settings.provider);
-  const input=required('input'),raw=input==='-'?await Bun.stdin.text():readFileSync(input,'utf8');
-  const source=policySource(),frozenPrompts={...prompts,...settings.prompts};
-  const snapshot:Snapshot={kind:'trie',inputs:records(raw),initial:v.categories?z.array(Definition).min(1).parse(load(v.categories)):undefined,policy:settings.policy,prompts:frozenPrompts,policySource:source,policyHash:hash({source,policy:settings.policy,prompts:frozenPrompts}),inputSource:input==='-'?'stdin':resolve(input),config};
-  provider=factory(config);snapshot.curatorIdentity=provider.curatorIdentity?.();
-  store=Store.create(dir,snapshot);store.state.data.trie=initialState();store.save();
- }else{
-  // Check compatibility before acquiring lock or constructing/authenticating providers.
-  if(v.config||v.categories||v.input)throw Error('resume uses frozen configuration and inputs');
-  const m=readTrie(dir);
-  if(hash(m.snapshot.policySource)!==hash(policySource()))throw Error('policy/source changed; restore frozen source or create a new run');
-  provider=factory(Config.parse(m.snapshot.config));store=Store.open<Snapshot>(dir);
- }
- try{
-  const d=store.state.data.trie as State;
-  await runTrie(store.state.snapshot,d,triePorts(store,provider),Config.parse(store.state.snapshot.config).jevModel);
-  console.log(JSON.stringify({status:d.status,stopReason:d.stopReason,error:d.error,completed:d.cursor,calls:store.state.calls.length}));
-  if(d.status!=='complete')process.exitCode=2;
- }finally{store.close();}
+
+type TrieArguments = {
+  input?: string;
+  'run-dir'?: string;
+  config?: string;
+  categories?: string;
+  out?: string;
+  'allow-external'?: boolean;
+};
+
+function parseTrieArguments(args: string[]): {values: TrieArguments} {
+  return parseArgs({
+    args,
+    strict: true,
+    options: {
+      input: {type: 'string'},
+      'run-dir': {type: 'string'},
+      config: {type: 'string'},
+      categories: {type: 'string'},
+      out: {type: 'string'},
+      'allow-external': {type: 'boolean'},
+    },
+  });
+}
+
+function requiredArgument(values: TrieArguments, key: 'run-dir' | 'input' | 'out'): string {
+  const value = values[key];
+  if (!value) throw Error(`--${key} required`);
+  return value;
+}
+
+function loadJson(path: string): unknown {
+  return JSON.parse(readFileSync(path, 'utf8'));
+}
+
+function requireExternalConsent(values: TrieArguments): void {
+  if (!values['allow-external']) {
+    throw Error('--allow-external required: inputs/prompts sent to external providers');
+  }
+}
+
+function inspectTrie(manifest: Journal<Snapshot>, state: State): void {
+  console.log(JSON.stringify({
+    id: manifest.id,
+    status: state?.status,
+    stopReason: state?.stopReason,
+    error: state?.error,
+    calls: manifest.calls.length,
+    completed: state?.cursor,
+    policyHash: manifest.snapshot.policyHash,
+  }, null, 2));
+}
+
+function exportTrie(manifest: Journal<Snapshot>, state: State, out: string): void {
+  mkdirSync(out, {mode: 0o700});
+  const assignments = state.progress.map(progress => ({
+    ...progress,
+    metadata: manifest.snapshot.inputs.find(record => record.id === progress.recordId)?.metadata,
+  }));
+  const files = {
+    manifest,
+    taxonomies: state.taxonomies,
+    assignments,
+    decisions: state.decisions,
+  };
+
+  for (const [name, value] of Object.entries(files)) {
+    writeFileSync(
+      join(out, name + '.json'),
+      JSON.stringify(value, null, 2) + '\n',
+      {mode: 0o600, flag: 'wx'},
+    );
+  }
+  console.log(out);
+}
+
+async function createRunStore(
+  values: TrieArguments,
+  dir: string,
+  factory: (config: Config) => Providers,
+): Promise<{store: Store<Snapshot>; provider: Providers}> {
+  const settings = Settings.parse(values.config ? loadJson(values.config) : {});
+  const config = Config.parse(settings.provider);
+  const input = requiredArgument(values, 'input');
+  const raw = input === '-' ? await Bun.stdin.text() : readFileSync(input, 'utf8');
+  const source = policySource();
+  const frozenPrompts = {...prompts, ...settings.prompts};
+  const snapshot: Snapshot = {
+    kind: 'trie',
+    inputs: records(raw),
+    initial: values.categories ? z.array(Definition).min(1).parse(loadJson(values.categories)) : undefined,
+    policy: settings.policy,
+    prompts: frozenPrompts,
+    policySource: source,
+    policyHash: hash({source, policy: settings.policy, prompts: frozenPrompts}),
+    inputSource: input === '-' ? 'stdin' : resolve(input),
+    config,
+  };
+
+  const provider = factory(config);
+  snapshot.curatorIdentity = provider.curatorIdentity?.();
+  const store = Store.create(dir, snapshot);
+  store.state.data.trie = initialState();
+  store.save();
+  return {store, provider};
+}
+
+function openResumeStore(
+  values: TrieArguments,
+  dir: string,
+  factory: (config: Config) => Providers,
+): {store: Store<Snapshot>; provider: Providers} {
+  if (values.config || values.categories || values.input) {
+    throw Error('resume uses frozen configuration and inputs');
+  }
+
+  const manifest = readTrie(dir);
+  if (hash(manifest.snapshot.policySource) !== hash(policySource())) {
+    throw Error('policy/source changed; restore frozen source or create a new run');
+  }
+
+  const provider = factory(Config.parse(manifest.snapshot.config));
+  const store = Store.open<Snapshot>(dir);
+  return {store, provider};
+}
+
+async function runStoredTrie(store: Store<Snapshot>, provider: Providers): Promise<void> {
+  const state = store.state.data.trie as State;
+  const config = Config.parse(store.state.snapshot.config);
+  await runTrie(store.state.snapshot, state, triePorts(store, provider), config.jevModel);
+  console.log(JSON.stringify({
+    status: state.status,
+    stopReason: state.stopReason,
+    error: state.error,
+    completed: state.cursor,
+    calls: store.state.calls.length,
+  }));
+  if (state.status !== 'complete') process.exitCode = 2;
+}
+
+export async function trieMain(
+  args: string[],
+  factory: (config: Config) => Providers = providers,
+): Promise<void> {
+  const command = args[0];
+  if (!command || ['help', '--help', '-h'].includes(command)) {
+    console.log(trieHelp);
+    return;
+  }
+
+  const {values} = parseTrieArguments(args.slice(1));
+  const dir = requiredArgument(values, 'run-dir');
+
+  if (command === 'inspect' || command === 'export') {
+    const manifest = readTrie(dir);
+    const state = manifest.data.trie as State;
+    if (command === 'inspect') {
+      inspectTrie(manifest, state);
+    } else {
+      exportTrie(manifest, state, requiredArgument(values, 'out'));
+    }
+    return;
+  }
+
+  if (command !== 'run' && command !== 'resume') throw Error('unknown trie command');
+  requireExternalConsent(values);
+
+  const {store, provider} = command === 'run'
+    ? await createRunStore(values, dir, factory)
+    : openResumeStore(values, dir, factory);
+
+  try {
+    await runStoredTrie(store, provider);
+  } finally {
+    store.close();
+  }
 }
