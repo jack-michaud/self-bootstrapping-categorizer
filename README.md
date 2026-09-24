@@ -1,6 +1,8 @@
 # Self-Bootstrapping Categorizer
 
-Turn a collection of text into defined, inspectable categories—without writing the whole taxonomy first. This Bun/TypeScript CLI starts with a small set of categories, discovers additions as it reads, and exports labels, probabilities and the evidence behind each decision.
+Turn a collection of arbitrary text into defined, inspectable categories without writing the whole list of categories first.
+
+This Bun/TypeScript CLI starts with a small set of categories proposed by a curator LLM, discovers additions as it reads, and exports labels, probabilities and the evidence behind each decision.
 
 A reasoning-model curator proposes names and definitions; [TypeSafe Jev](https://typesafe.ai) classifies records; ordinary code controls validation, budgets and checkpoints. Bring your own JSONL, categorization prompts or starting categories.
 
@@ -15,9 +17,12 @@ bun install --frozen-lockfile
 bun src/cli.ts help
 ```
 
-For live classification, supply `TYPESAFE_API_KEY` through your environment or credential manager. Discovery also requires a separately installed, compatible **Hermes Python runtime** with existing OpenAI Codex authentication. The default runtime is `~/.hermes/hermes-agent`, using `venv/bin/python`; set `hermesRuntimePath` in your JSON config if it differs. See [adapter requirements and alternatives](vision.md#isolated-curator-adapters).
+For live classification, supply `TYPESAFE_API_KEY` through your environment.
 
-The [example config](examples/discovery-config.json) selects `hermes-native`, `openai-codex`, `gpt-6-astra` and `jev-latest`, with a 40-record seed sample, 100-category ceiling and 150 provider-attempt budget. Choose models available to your account; availability is not guaranteed. Failed attempts count toward the budget. Keep credentials out of config files.
+Discovery also requires a separately installed, compatible curator runtime. Currently supported:
+- **Hermes Python runtime**
+
+The [example config](examples/discovery-config.json) selects `hermes-native`, `openai-codex`, `gpt-6-astra` and `jev-latest`, with a 40-record seed sample, 100-category ceiling and 150 provider-attempt budget.
 
 Run the bundled synthetic example:
 
