@@ -117,6 +117,8 @@ This is an **experimental categorizer**, not a validated high-accuracy classifie
 
 The [Claude-skills case study](evals/skill-categorizer-by-task/README.md) follows earlier high-level catalog analysis into finer task trials: the three-run quality gate **failed**, and a later authorized corpus run exposed substantial misbucketing. Neither completion nor low Other counts established quality.
 
-Offline checks: `bun test` and `bun run typecheck`. Subprocess tests need Python 3 at `/usr/bin/python3` and POSIX support (tested on Linux). These use synthetic fixtures, not live model calls; see [publication scope](docs/publication.md). Private benchmark/corpus evidence is not redistributed.
+The original 20-record flat task benchmark now has a [portable source-and-gold setup](evals/skill-categorizer-by-task/SETUP.md): Python stdlib fetches commit-pinned upstream files, checks hashes and reconstructs the exact inputs; project-authored gold is bundled unchanged. No corpus text or raw runs are redistributed, and setup makes no model calls. **A trie scorer is not implemented**; this is not a trie-quality benchmark.
+
+Offline checks: `bun test` and `bun run typecheck`. Subprocess tests need Python 3 at `/usr/bin/python3` and on `PATH`, plus POSIX support (tested on Linux). These use synthetic fixtures, not live model calls; see [publication scope](docs/publication.md).
 
 No license has been selected. Public visibility is not an open-source license grant; dependencies retain their own licenses.

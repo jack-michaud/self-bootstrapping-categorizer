@@ -11,6 +11,9 @@ evals/*
 !evals/skill-categorizer-by-task/
 evals/skill-categorizer-by-task/*
 !evals/skill-categorizer-by-task/README.md
+!evals/skill-categorizer-by-task/SETUP.md
+!evals/skill-categorizer-by-task/download-manifest.json
+!evals/skill-categorizer-by-task/ground-truth.json
 !evals/skill-categorizer-by-task/assets/
 evals/skill-categorizer-by-task/assets/*
 !evals/skill-categorizer-by-task/assets/skill-atlas.png

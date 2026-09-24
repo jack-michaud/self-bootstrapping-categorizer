@@ -2,7 +2,7 @@
 
 This application began with a broad question: **what kinds of skills are in these repositories?** A prior catalog analysis grouped them into high-level categories and produced the original atlas below. The follow-up asked a different question: **which particular tasks do skills support, and where do those tasks overlap across repositories?** That motivated the finer-grained self-bootstrapping experiments.
 
-This is a historical case study, not a bundled benchmark dataset or a claim that the classifier is accurate. The broad catalog analysis predates the task-discovery tool; it was not the first stage of a hierarchical runtime pipeline.
+This is a historical case study, not a claim that the classifier is accurate. A separate [portable setup guide](SETUP.md) reconstructs the exact original 20-record flat benchmark from pinned public sources and installs the unchanged project-authored gold now bundled here; source texts and historical runs are not redistributed. A trie scorer is not implemented. The broad catalog analysis predates the task-discovery tool; it was not the first stage of a hierarchical runtime pipeline.
 
 ## 1. High-level categories: the original skill atlas
 
@@ -80,4 +80,4 @@ Add-only discovery preserves existing definitions and earlier assignments; it ca
 - The finer trials exposed category-scope and consistency problems. Completion, low Other counts and confident judgments are not substitutes for quality evaluation.
 - Nothing here demonstrates that installing these skills improves agent performance, that the method generalizes to other corpora, or that the full-corpus assignments are accurate.
 
-Only new explanatory prose, historical aggregate counts, pinned repository references and the original aggregate PNG are published here. Private benchmark answers, corpus text, raw responses and run artifacts remain excluded, so these historical results are **not independently reproducible from this repository alone**. See [publication scope](../../docs/publication.md), the [runtime design](../../vision.md) and the [CLI quickstart](../../README.md#quickstart).
+This case study publishes explanatory prose, historical aggregate counts, pinned repository references and the original aggregate PNG. The [setup bundle](SETUP.md) additionally publishes the original project-authored task gold and a references/checksums-only download manifest. Corpus text, raw responses and historical run/config/source freezes remain excluded. The exact benchmark inputs are reconstructible, but these historical model results are **not a replayable experiment from this repository alone**. See [publication scope](../../docs/publication.md), the [runtime design](../../vision.md) and the [CLI quickstart](../../README.md#quickstart).

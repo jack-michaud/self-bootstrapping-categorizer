@@ -1,0 +1,341 @@
+{
+  "schema_version": 1,
+  "benchmark": "skill-categorizer-by-task-v1",
+  "record_count": 20,
+  "label_count": 11,
+  "truth_provenance": "Project-curated before provider runs: original labels, assignments and authored rationales, unchanged. Not upstream gold, synthetic data, a universal ontology or held-out validation.",
+  "reconstruction": "Hash-checked UTF-8 SKILL.md frontmatter name + newline + description (including folded-scalar trailing newline); original metadata and JSONL serialization. Parser supports only pinned scalar forms, not arbitrary YAML.",
+  "inputs_sha256": "af22f2743ea0c613a080e9f2988b643c0df67957ebc398ed17fa8473edc4e2e8",
+  "truth_sha256": "7b2496956ff16533fdb56756cab9ac03aaaca3d9b87e386dbf9bdd055075a964",
+  "license_caveat": "No source corpus is distributed. References and hashes enable direct upstream retrieval for local evaluation. Root licenses and component declarations are observations, not an audit or permission to republish imported components. Review applicable notices before use/redistribution. No project license selected.",
+  "repositories": [
+    {
+      "repo": "DietrichGebert/ponytail",
+      "commit": "e3ba2aa6f1e6f0bc4d69eb09c9f0d0a93af56156",
+      "historical_api_license": "MIT",
+      "pinned_root_license_observation": "MIT root license; component-specific terms/provenance may differ",
+      "component_rights_audit": "Not a legal audit"
+    },
+    {
+      "repo": "Egonex-AI/Understand-Anything",
+      "commit": "6df3065f1d8ddc2ce3615314d1d493f36d6b1c80",
+      "historical_api_license": "MIT",
+      "pinned_root_license_observation": "MIT root license; component-specific terms/provenance may differ",
+      "component_rights_audit": "Not a legal audit"
+    },
+    {
+      "repo": "JuliusBrussee/caveman",
+      "commit": "2fd153c67988e980fb0b2455c90832159a6a5a25",
+      "historical_api_license": "NOASSERTION",
+      "pinned_root_license_observation": "MIT; selected skills/ explicitly MIT in LICENSING.md; engine-linked code is BSL-1.1",
+      "component_rights_audit": "Not a legal audit"
+    },
+    {
+      "repo": "K-Dense-AI/scientific-agent-skills",
+      "commit": "49c6e97775eaa18ba791bebe23162a70ae601c18",
+      "historical_api_license": "MIT",
+      "pinned_root_license_observation": "MIT root license; component-specific terms/provenance may differ",
+      "component_rights_audit": "Not a legal audit"
+    },
+    {
+      "repo": "cathrynlavery/diagram-design",
+      "commit": "dc1ace47b99a419e42d01a03cb6ace5346efa8ae",
+      "historical_api_license": "MIT",
+      "pinned_root_license_observation": "MIT root license; component-specific terms/provenance may differ",
+      "component_rights_audit": "Not a legal audit"
+    },
+    {
+      "repo": "mvanhorn/last30days-skill",
+      "commit": "349ca444b4fda466e74d471dffa2aff36bb997f1",
+      "historical_api_license": "MIT",
+      "pinned_root_license_observation": "MIT root license; component-specific terms/provenance may differ",
+      "component_rights_audit": "Not a legal audit"
+    },
+    {
+      "repo": "obra/superpowers",
+      "commit": "5bf4e78011075bcfc0dc295f0724994cd123ee71",
+      "historical_api_license": "MIT",
+      "pinned_root_license_observation": "MIT root license; component-specific terms/provenance may differ",
+      "component_rights_audit": "Not a legal audit"
+    },
+    {
+      "repo": "sickn33/agentic-awesome-skills",
+      "commit": "c585de4848835abe9d753442621c58473fb8bb1e",
+      "historical_api_license": "MIT",
+      "pinned_root_license_observation": "MIT root license; component-specific terms/provenance may differ",
+      "component_rights_audit": "Not performed; imported components in the aggregator require independent rights review"
+    }
+  ],
+  "items": [
+    {
+      "id": "skill-001",
+      "repo": "DietrichGebert/ponytail",
+      "path": "skills/ponytail-debt/SKILL.md",
+      "commit": "e3ba2aa6f1e6f0bc4d69eb09c9f0d0a93af56156",
+      "url": "https://github.com/DietrichGebert/ponytail/blob/e3ba2aa6f1e6f0bc4d69eb09c9f0d0a93af56156/skills/ponytail-debt/SKILL.md",
+      "sha256": "c84fba75f0ca12bfe83f9a78ea02fd125c5dd3f1fbb18124105a489937f284e6",
+      "declared_provenance": {}
+    },
+    {
+      "id": "skill-002",
+      "repo": "DietrichGebert/ponytail",
+      "path": "skills/ponytail-review/SKILL.md",
+      "commit": "e3ba2aa6f1e6f0bc4d69eb09c9f0d0a93af56156",
+      "url": "https://github.com/DietrichGebert/ponytail/blob/e3ba2aa6f1e6f0bc4d69eb09c9f0d0a93af56156/skills/ponytail-review/SKILL.md",
+      "sha256": "40df33b58fc6ef889b93585733feb9566b76e9586efa7f376785c1e995197ac0",
+      "declared_provenance": {}
+    },
+    {
+      "id": "skill-003",
+      "repo": "Egonex-AI/Understand-Anything",
+      "path": "understand-anything-plugin/skills/understand-onboard/SKILL.md",
+      "commit": "6df3065f1d8ddc2ce3615314d1d493f36d6b1c80",
+      "url": "https://github.com/Egonex-AI/Understand-Anything/blob/6df3065f1d8ddc2ce3615314d1d493f36d6b1c80/understand-anything-plugin/skills/understand-onboard/SKILL.md",
+      "sha256": "e5be45248859ca8255546a18a340bc1556984162f5b1a3f77da1e66136a557b3",
+      "declared_provenance": {}
+    },
+    {
+      "id": "skill-004",
+      "repo": "JuliusBrussee/caveman",
+      "path": "skills/caveman-commit/SKILL.md",
+      "commit": "2fd153c67988e980fb0b2455c90832159a6a5a25",
+      "url": "https://github.com/JuliusBrussee/caveman/blob/2fd153c67988e980fb0b2455c90832159a6a5a25/skills/caveman-commit/SKILL.md",
+      "sha256": "c788a282fc75b981b421dfdad5d84ea7f83f946c126daa39cfc7d3f97845e193",
+      "declared_provenance": {}
+    },
+    {
+      "id": "skill-005",
+      "repo": "JuliusBrussee/caveman",
+      "path": "skills/caveman-review/SKILL.md",
+      "commit": "2fd153c67988e980fb0b2455c90832159a6a5a25",
+      "url": "https://github.com/JuliusBrussee/caveman/blob/2fd153c67988e980fb0b2455c90832159a6a5a25/skills/caveman-review/SKILL.md",
+      "sha256": "599330563f19b5c59c3efddffcd7e8d9098b74c29817ab422ccd3253b103fcb8",
+      "declared_provenance": {}
+    },
+    {
+      "id": "skill-006",
+      "repo": "JuliusBrussee/caveman",
+      "path": "skills/investigate-first/SKILL.md",
+      "commit": "2fd153c67988e980fb0b2455c90832159a6a5a25",
+      "url": "https://github.com/JuliusBrussee/caveman/blob/2fd153c67988e980fb0b2455c90832159a6a5a25/skills/investigate-first/SKILL.md",
+      "sha256": "7cc19dd2fc457eb20d65c44dee4d1b72dcdfcd1617182f5bff666700f2a055d8",
+      "declared_provenance": {}
+    },
+    {
+      "id": "skill-007",
+      "repo": "K-Dense-AI/scientific-agent-skills",
+      "path": "skills/citation-management/SKILL.md",
+      "commit": "49c6e97775eaa18ba791bebe23162a70ae601c18",
+      "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/49c6e97775eaa18ba791bebe23162a70ae601c18/skills/citation-management/SKILL.md",
+      "sha256": "24b73d1d84e34900c7c1556af4d7e6462cc846bcf6c5071112a77545ce258f73",
+      "declared_provenance": {
+        "license": "MIT License"
+      }
+    },
+    {
+      "id": "skill-008",
+      "repo": "K-Dense-AI/scientific-agent-skills",
+      "path": "skills/peer-review/SKILL.md",
+      "commit": "49c6e97775eaa18ba791bebe23162a70ae601c18",
+      "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/49c6e97775eaa18ba791bebe23162a70ae601c18/skills/peer-review/SKILL.md",
+      "sha256": "3422beafc240aa7d2703e71fe16e3400269a5ea17045d8b390a30efe58c3de67",
+      "declared_provenance": {
+        "license": "MIT"
+      }
+    },
+    {
+      "id": "skill-009",
+      "repo": "K-Dense-AI/scientific-agent-skills",
+      "path": "skills/scientific-schematics/SKILL.md",
+      "commit": "49c6e97775eaa18ba791bebe23162a70ae601c18",
+      "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/49c6e97775eaa18ba791bebe23162a70ae601c18/skills/scientific-schematics/SKILL.md",
+      "sha256": "3ef33ab3eb6eed0f3625a9fe48d4dc7618abe07b5794015e125273220d7dafef",
+      "declared_provenance": {
+        "license": "MIT license"
+      }
+    },
+    {
+      "id": "skill-010",
+      "repo": "K-Dense-AI/scientific-agent-skills",
+      "path": "skills/scientific-slides/SKILL.md",
+      "commit": "49c6e97775eaa18ba791bebe23162a70ae601c18",
+      "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/49c6e97775eaa18ba791bebe23162a70ae601c18/skills/scientific-slides/SKILL.md",
+      "sha256": "9c5c4f7e991140f997c03833313a3045a57c36298e290df5832a98cea34f66a8",
+      "declared_provenance": {
+        "license": "MIT license"
+      }
+    },
+    {
+      "id": "skill-011",
+      "repo": "cathrynlavery/diagram-design",
+      "path": "skills/diagram-design/SKILL.md",
+      "commit": "dc1ace47b99a419e42d01a03cb6ace5346efa8ae",
+      "url": "https://github.com/cathrynlavery/diagram-design/blob/dc1ace47b99a419e42d01a03cb6ace5346efa8ae/skills/diagram-design/SKILL.md",
+      "sha256": "e5972fbf409d6d676cfdfde321a4f526cbb0b587224b0df42ce484a328cef27e",
+      "declared_provenance": {
+        "license": "MIT"
+      }
+    },
+    {
+      "id": "skill-012",
+      "repo": "mvanhorn/last30days-skill",
+      "path": "skills/last30days/SKILL.md",
+      "commit": "349ca444b4fda466e74d471dffa2aff36bb997f1",
+      "url": "https://github.com/mvanhorn/last30days-skill/blob/349ca444b4fda466e74d471dffa2aff36bb997f1/skills/last30days/SKILL.md",
+      "sha256": "bdde67d5df7fd7f73dbfff4ee7f9fea919babedd5a5b17690e6d216fc1769bc6",
+      "declared_provenance": {
+        "author": "mvanhorn",
+        "license": "MIT"
+      }
+    },
+    {
+      "id": "skill-013",
+      "repo": "obra/superpowers",
+      "path": "skills/systematic-debugging/SKILL.md",
+      "commit": "5bf4e78011075bcfc0dc295f0724994cd123ee71",
+      "url": "https://github.com/obra/superpowers/blob/5bf4e78011075bcfc0dc295f0724994cd123ee71/skills/systematic-debugging/SKILL.md",
+      "sha256": "808fc5717aa88ad65efff312b11c186294d3e6ee301afb584e2f86599b137787",
+      "declared_provenance": {}
+    },
+    {
+      "id": "skill-014",
+      "repo": "sickn33/agentic-awesome-skills",
+      "path": "skills/brooks-review/SKILL.md",
+      "commit": "c585de4848835abe9d753442621c58473fb8bb1e",
+      "url": "https://github.com/sickn33/agentic-awesome-skills/blob/c585de4848835abe9d753442621c58473fb8bb1e/skills/brooks-review/SKILL.md",
+      "sha256": "a13b62ff5d7976c6543ce12f8af40cd387ad05570acec17c8c0feb9d8e43a496",
+      "declared_provenance": {
+        "license": "MIT",
+        "license_source": "https://github.com/hyhmrright/brooks-lint/blob/main/LICENSE",
+        "source": "https://github.com/hyhmrright/brooks-lint/tree/main/skills/brooks-review",
+        "source_repo": "hyhmrright/brooks-lint",
+        "source_type": "community"
+      }
+    },
+    {
+      "id": "skill-015",
+      "repo": "sickn33/agentic-awesome-skills",
+      "path": "skills/code-review-sensei/SKILL.md",
+      "commit": "c585de4848835abe9d753442621c58473fb8bb1e",
+      "url": "https://github.com/sickn33/agentic-awesome-skills/blob/c585de4848835abe9d753442621c58473fb8bb1e/skills/code-review-sensei/SKILL.md",
+      "sha256": "43c9705eb3f6c06e259a14c874856b8610c00e1ce65ec1cdd90aba9be6ab7cbd",
+      "declared_provenance": {
+        "author": "yundu-ai",
+        "source": "community",
+        "source_repo": "demo112/yunqu-ai-skills",
+        "source_type": "community"
+      }
+    },
+    {
+      "id": "skill-016",
+      "repo": "sickn33/agentic-awesome-skills",
+      "path": "skills/diagram-generator/SKILL.md",
+      "commit": "c585de4848835abe9d753442621c58473fb8bb1e",
+      "url": "https://github.com/sickn33/agentic-awesome-skills/blob/c585de4848835abe9d753442621c58473fb8bb1e/skills/diagram-generator/SKILL.md",
+      "sha256": "f9dc667fb4fd2559bd8b653a1bc9b5b59c306dec7527c51e2ebd95990fa189f7",
+      "declared_provenance": {
+        "license": "MIT",
+        "license_source": "https://github.com/zhaoxuya520/reverse-skill/blob/main/LICENSE",
+        "source": "https://github.com/zhaoxuya520/reverse-skill",
+        "source_repo": "zhaoxuya520/reverse-skill",
+        "source_type": "community"
+      }
+    },
+    {
+      "id": "skill-017",
+      "repo": "sickn33/agentic-awesome-skills",
+      "path": "skills/frontend-slides/SKILL.md",
+      "commit": "c585de4848835abe9d753442621c58473fb8bb1e",
+      "url": "https://github.com/sickn33/agentic-awesome-skills/blob/c585de4848835abe9d753442621c58473fb8bb1e/skills/frontend-slides/SKILL.md",
+      "sha256": "e3cc0a1dc69d6c26cd3bb7447f1352e45c24f813339e3b0085b1c8e8738dba81",
+      "declared_provenance": {
+        "source": "https://github.com/zarazhangrui/frontend-slides"
+      }
+    },
+    {
+      "id": "skill-018",
+      "repo": "sickn33/agentic-awesome-skills",
+      "path": "skills/phase-gated-debugging/SKILL.md",
+      "commit": "c585de4848835abe9d753442621c58473fb8bb1e",
+      "url": "https://github.com/sickn33/agentic-awesome-skills/blob/c585de4848835abe9d753442621c58473fb8bb1e/skills/phase-gated-debugging/SKILL.md",
+      "sha256": "0493b1c9705340ff762c0e2f73b3d6aec4e1431b001a6e67dc7406d0f6e58941",
+      "declared_provenance": {
+        "source": "community"
+      }
+    },
+    {
+      "id": "skill-019",
+      "repo": "sickn33/agentic-awesome-skills",
+      "path": "skills/verify-citations/SKILL.md",
+      "commit": "c585de4848835abe9d753442621c58473fb8bb1e",
+      "url": "https://github.com/sickn33/agentic-awesome-skills/blob/c585de4848835abe9d753442621c58473fb8bb1e/skills/verify-citations/SKILL.md",
+      "sha256": "559bc43a9fdb2889273048f3e2a360c78f94b2ae786589eae644f1fc60428273",
+      "declared_provenance": {
+        "author": "Sketchjar",
+        "license": "Apache-2.0",
+        "license_source": "https://github.com/Sketchjar/stipple-agent-skills/blob/main/LICENSE",
+        "source": "community",
+        "source_repo": "Sketchjar/stipple-agent-skills",
+        "source_type": "community"
+      }
+    },
+    {
+      "id": "skill-020",
+      "repo": "sickn33/agentic-awesome-skills",
+      "path": "skills/wiki-onboarding/SKILL.md",
+      "commit": "c585de4848835abe9d753442621c58473fb8bb1e",
+      "url": "https://github.com/sickn33/agentic-awesome-skills/blob/c585de4848835abe9d753442621c58473fb8bb1e/skills/wiki-onboarding/SKILL.md",
+      "sha256": "eb3d970d66971afb4ccef429f4bcbf4d1e6f78eb3134372eb9c6c28fe2dfd18b",
+      "declared_provenance": {
+        "source": "community"
+      }
+    }
+  ],
+  "notices": [
+    {
+      "url": "https://raw.githubusercontent.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/LICENSE",
+      "sha256": "a37e0e9697144819e1d965176ac4ae5bc3fa02d11e7812036bbcadf6dafe2400",
+      "output": "notices/obra--superpowers--LICENSE"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/DietrichGebert/ponytail/e3ba2aa6f1e6f0bc4d69eb09c9f0d0a93af56156/LICENSE",
+      "sha256": "fb1bc6909ac3ef82d5c22106e32ef682b0cff66788fa915fb9b53b15c9d2f3ab",
+      "output": "notices/DietrichGebert--ponytail--LICENSE"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/JuliusBrussee/caveman/2fd153c67988e980fb0b2455c90832159a6a5a25/LICENSE",
+      "sha256": "94fe75d355887f84ee7eefca68e06d8d082a23dad47a8e1f58a94d98900edf5b",
+      "output": "notices/JuliusBrussee--caveman--LICENSE"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/JuliusBrussee/caveman/2fd153c67988e980fb0b2455c90832159a6a5a25/LICENSING.md",
+      "sha256": "84e8dfe4096a9989640ed5d544355cc8878a874346245ec3b643bd5001c7b106",
+      "output": "notices/JuliusBrussee--caveman--LICENSING.md"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Egonex-AI/Understand-Anything/6df3065f1d8ddc2ce3615314d1d493f36d6b1c80/LICENSE",
+      "sha256": "24c4b35344840f1abaf3a3a4a44f5e29ee0e73b6bf25e42ef108e0afebd402bc",
+      "output": "notices/Egonex-AI--Understand-Anything--LICENSE"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/mvanhorn/last30days-skill/349ca444b4fda466e74d471dffa2aff36bb997f1/LICENSE",
+      "sha256": "31803213a789825dc419de43542381e1d570b4408cf2bcf2e8a9947a6d3fd2ab",
+      "output": "notices/mvanhorn--last30days-skill--LICENSE"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/sickn33/agentic-awesome-skills/c585de4848835abe9d753442621c58473fb8bb1e/LICENSE",
+      "sha256": "af98370a7edc0f00ec46979d049517833c9a7fa2ba74e3cf8cc42f7db557299d",
+      "output": "notices/sickn33--agentic-awesome-skills--LICENSE"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/K-Dense-AI/scientific-agent-skills/49c6e97775eaa18ba791bebe23162a70ae601c18/LICENSE.md",
+      "sha256": "09b02a3c9df3053c55531d503357a9c7cde275970e6c3ceaa1ddf5f0e90b40c1",
+      "output": "notices/K-Dense-AI--scientific-agent-skills--LICENSE.md"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/cathrynlavery/diagram-design/dc1ace47b99a419e42d01a03cb6ace5346efa8ae/LICENSE",
+      "sha256": "bb7e12e91fecef43024111123ff784cec6c485585561d8b552557c0173b3ed29",
+      "output": "notices/cathrynlavery--diagram-design--LICENSE"
+    }
+  ]
+}

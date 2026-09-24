@@ -1,0 +1,161 @@
+{
+  "labels": [
+    {
+      "id": "review-code",
+      "name": "Review code and report actionable findings",
+      "description": "Inspect code or a diff and report located defects, risks, design or maintainability problems and suggested remedies. Includes complexity-only review and terse review comments. Excludes implementing repairs, diagnosing a reported failure, manuscript review, and merely rewriting someone else's review prose."
+    },
+    {
+      "id": "diagnose-software-failure",
+      "name": "Diagnose software failures before fixing",
+      "description": "Reproduce or investigate a bug, test failure, regression or unexpected behavior to establish an evidence-backed root cause before editing. A subsequent repair/verification phase is allowed but not required. Excludes general proactive code review and feature implementation."
+    },
+    {
+      "id": "create-diagrams",
+      "name": "Create explanatory diagrams",
+      "description": "Generate or refine diagrams that visually explain systems, relationships, structures or processes. Includes scientific schematics, architecture and flow diagrams regardless of renderer, format or branding. Excludes complete slide decks, codebase onboarding guides, and graph construction as a searchable knowledge store."
+    },
+    {
+      "id": "create-slide-decks",
+      "name": "Create presentation slide decks",
+      "description": "Create or convert a multi-slide presentation for a talk, pitch or teaching session, including narrative structure and slide layout. Scientific audience and HTML, PDF, PowerPoint or Beamer are modifiers, not separate tasks. Excludes isolated explanatory diagrams."
+    },
+    {
+      "id": "write-codebase-onboarding",
+      "name": "Write codebase onboarding guides",
+      "description": "Produce written orientation and getting-started documentation that helps developers understand and contribute to a particular codebase. Includes architectural tours and practical contributor guides. Excludes generic API activation optimization, diagram-only outputs and knowledge graph construction."
+    },
+    {
+      "id": "write-commit-message",
+      "name": "Write Git commit messages",
+      "description": "Draft or revise the text describing a code change for a Git commit, including Conventional Commits structure and intent. The deliverable is the message, not staging files, creating commits or executing a release."
+    },
+    {
+      "id": "manage-bibliographic-references",
+      "name": "Build and maintain bibliographic references",
+      "description": "Find academic publications, resolve identifiers, extract citation metadata and build or clean formatted bibliography entries such as BibTeX. Validation supports bibliography maintenance. Excludes document-wide auditing of whether citations support claims and full manuscript peer review."
+    },
+    {
+      "id": "verify-document-citations",
+      "name": "Verify a document's citations against sources",
+      "description": "Audit existing document citations for resolution, matching references and support for attached claims; report unsupported or mismatched evidence. Excludes bibliography construction as the primary deliverable and whole-manuscript scientific peer review."
+    },
+    {
+      "id": "review-scientific-manuscript",
+      "name": "Review scientific manuscripts",
+      "description": "Prepare an evidence-bounded scientific peer-review draft or structured assessment of a manuscript, protocol, preprint or research proposal, including methods, claims, reporting and limitations. Excludes code review, bibliography building and citation-only checks."
+    },
+    {
+      "id": "research-recent-discussion",
+      "name": "Research recent public discussion",
+      "description": "Research and synthesize what people have said about a topic over a recent time window using social, community and web sources with engagement evidence. Excludes timeless academic bibliography searches and diagnostics of the research tooling as the primary task."
+    },
+    {
+      "id": "inventory-marked-debt",
+      "name": "Inventory explicitly marked technical debt",
+      "description": "Collect existing code-comment debt markers into a ledger of deliberate shortcuts, limits and revisit triggers. Report the recorded deferrals without changing code. Excludes discovering new code-quality findings through review and generic repository audits."
+    }
+  ],
+  "items": [
+    {
+      "id": "skill-001",
+      "label_id": "inventory-marked-debt",
+      "rationale": "The description harvests existing ponytail comments into a debt ledger. The body reads markers, groups ledger rows and flags missing revisit triggers; it does not discover new complexity problems or apply fixes."
+    },
+    {
+      "id": "skill-002",
+      "label_id": "review-code",
+      "rationale": "The description explicitly requests code review for over-engineering and located deletion/replacement findings. The body says it reviews diffs and does not apply fixes. Complexity is a review dimension, not a different initial task."
+    },
+    {
+      "id": "skill-003",
+      "label_id": "write-codebase-onboarding",
+      "rationale": "The description generates an onboarding guide for new project members. The body uses a knowledge graph to write a Markdown guide with overview, layers, tour and file map; the graph is input, not the requested deliverable."
+    },
+    {
+      "id": "skill-004",
+      "label_id": "write-commit-message",
+      "rationale": "The description writes Conventional Commits messages. The body explicitly forbids staging, amending or running git commit; this narrow output avoids conflating message writing with repository mutation."
+    },
+    {
+      "id": "skill-005",
+      "label_id": "review-code",
+      "rationale": "The description identifies PR/diff review and location/problem/fix output. The body explicitly says reviews only, with no code fixes or approvals: this is performing a review with a terse style, not a general communication mode."
+    },
+    {
+      "id": "skill-006",
+      "label_id": "diagnose-software-failure",
+      "rationale": "The description directly calls for diagnosis of ambiguous failures before editing. The body ranks hypotheses and reports cause/proof without an unauthorized fix."
+    },
+    {
+      "id": "skill-007",
+      "label_id": "manage-bibliographic-references",
+      "rationale": "The description spans paper search, metadata extraction, validation and BibTeX generation. The body maintains citations throughout research/writing; its primary outcome is bibliographic references, not a document-wide evidence audit."
+    },
+    {
+      "id": "skill-008",
+      "label_id": "review-scientific-manuscript",
+      "rationale": "The description prepares scientific peer-review drafts and structured manuscript assessments. The body covers scientific scope, methods and human reviewer accountability, not software review or only reference checking."
+    },
+    {
+      "id": "skill-009",
+      "label_id": "create-diagrams",
+      "rationale": "The description creates scientific diagrams including systems and flowcharts. The body generates diagram PNGs; the scientific domain and image model are modifiers of the same diagram-creation task."
+    },
+    {
+      "id": "skill-010",
+      "label_id": "create-slide-decks",
+      "rationale": "The description builds slide decks for talks and defenses. The body plans a deck and assembles slides into a presentation; research context does not turn it into bibliography work."
+    },
+    {
+      "id": "skill-011",
+      "label_id": "create-diagrams",
+      "rationale": "The description explicitly creates branded diagrams in visual file formats. Its body generates inline SVG diagrams; charts/imports/style onboarding are supported variants or setup, not a developer-onboarding deliverable."
+    },
+    {
+      "id": "skill-012",
+      "label_id": "research-recent-discussion",
+      "rationale": "The description researches what people actually say within the last 30 days across social/community/web sources. The doctor health check is auxiliary tooling, not the initial research task."
+    },
+    {
+      "id": "skill-013",
+      "label_id": "diagnose-software-failure",
+      "rationale": "The trigger is a bug/test failure/unexpected behavior before proposing fixes. The body requires root-cause investigation first; later implementation is outside the initial task being scored."
+    },
+    {
+      "id": "skill-014",
+      "label_id": "review-code",
+      "rationale": "The description promises PR review findings about design smells and maintainability. The body scans decay risks and returns a PR Review report; the book-based lens does not change the review task."
+    },
+    {
+      "id": "skill-015",
+      "label_id": "review-code",
+      "rationale": "The description promises bug, security, performance and design findings with fixes. The body defines a five-dimension review and located issue reports, rather than executing repairs."
+    },
+    {
+      "id": "skill-016",
+      "label_id": "create-diagrams",
+      "rationale": "The description directly generates/refines/renders diagrams from source material. The body normalizes entities and relationships and writes editable diagram source, not an entire presentation."
+    },
+    {
+      "id": "skill-017",
+      "label_id": "create-slide-decks",
+      "rationale": "The description creates HTML presentations or converts PowerPoint. The body supports new decks, conversion and enhancement; browser implementation is a format choice."
+    },
+    {
+      "id": "skill-018",
+      "label_id": "diagnose-software-failure",
+      "rationale": "The description blocks edits pending root-cause confirmation. Its five phases start with reproduction/isolation/root cause; subsequent fixing does not change the initial diagnostic task."
+    },
+    {
+      "id": "skill-019",
+      "label_id": "verify-document-citations",
+      "rationale": "The description verifies document references against real sources. The body audits whether citations resolve and support their attached claims; incidental arithmetic checks do not make this general data analysis or bibliography construction."
+    },
+    {
+      "id": "skill-020",
+      "label_id": "write-codebase-onboarding",
+      "rationale": "The description generates codebase onboarding documents for engineers. The body supplies principal-level and contributor guides; diagrams, debugging tips and technical-debt sections are supporting content, not separate primary tasks."
+    }
+  ]
+}
