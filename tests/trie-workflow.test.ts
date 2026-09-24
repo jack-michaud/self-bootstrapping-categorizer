@@ -78,6 +78,25 @@ test('optional deeper path refines at most once per visited parent',async()=>{
  expect(d.progress[0]!.path.map(n=>n.name)).toEqual(['Interprets code','For code review','To simplify architecture']);
  expect(d.progress[0]!.steps.at(-1)!.path.length).toBe(3);expect(d.progress[0]!.steps.at(-1)!.taxonomyVersion).toBe(3);
 });
+test('curator session ID is saved and reused for later curation turns',async()=>{
+ const s=snapshot({maxDepth:3});s.inputs=s.inputs.slice(0,1);const d=initialState();
+ const choices=['n1','specificOther','n1.1','specificOther','n1.1.1'];
+ const sessionIds:(string|undefined)[]=[],saved:string[]=[];
+ await runTrie(s,d,{
+  save(){saved.push(JSON.stringify(d));},
+  async judge(req){return answer(req,choices.shift()!);},
+  async curate(_phase,_system,payload,_maxCalls,sessionId){
+   sessionIds.push(sessionId);
+   const parent=(payload as {path:{id:string}[]}).path.at(-1)!.id;
+   const name=parent==='n1'?'First refinement':'Second refinement';
+   return {text:JSON.stringify({actions:[{...action(parent),name}]}),sessionId:sessionId??'pi-session-one'};
+  },
+ },'jev-test');
+ expect(d.status).toBe('complete');
+ expect(sessionIds).toEqual([undefined,'pi-session-one']);
+ expect(d.progress[0]!.curatorSessionId).toBe('pi-session-one');
+ expect(saved.some(raw=>JSON.parse(raw).progress[0]?.curatorSessionId==='pi-session-one')).toBe(true);
+});
 test('curator-seeded roots finalized before classification',async()=>{
  const s=snapshot();delete s.initial;const d=initialState();let seed=0;
  await runTrie(s,d,{save(){},async curate(phase){expect(phase).toBe('seed');seed++;return JSON.stringify({actions:[action(null)]});},async judge(req){expect(d.taxonomies.length).toBe(1);return answer(req,'other');}},'jev-test');

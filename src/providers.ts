@@ -3,7 +3,7 @@ import type {Config, Request} from './contracts.ts';
 
 export interface Providers {
   jev(req: Request): Promise<unknown>;
-  curate(system: string, payload: unknown): Promise<CuratorResult>;
+  curate(system: string, payload: unknown, sessionId?: string): Promise<CuratorResult>;
   curatorIdentity?: () => unknown;
 }
 

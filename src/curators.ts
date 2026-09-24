@@ -4,6 +4,7 @@ import {join, resolve} from 'node:path';
 import {homedir, tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
 import {z} from 'zod';
+import type {createAgentSession, SessionManager as PiSessionManager} from '@earendil-works/pi-coding-agent';
 import type {Config} from './contracts.ts';
 import {hash} from './store.ts';
 
@@ -16,11 +17,12 @@ export interface CuratorResult {
   text: string;
   model: string;
   raw: unknown;
+  sessionId?: string;
 }
 
 export interface CuratorBackend {
   identity: () => unknown;
-  curate: (system: string, payload: unknown) => Promise<CuratorResult>;
+  curate: (system: string, payload: unknown, sessionId?: string) => Promise<CuratorResult>;
 }
 
 export const CHAT_LIMITATION = 'hermes-chat unavailable: installed CLI has no supported explicit empty-toolset contract (-t empty selects defaults; unknown toolsets are not a safety API). Use hermes-native for a fresh tool-free native completion with existing Hermes auth; no CLI fallback is attempted.';
@@ -210,48 +212,91 @@ function hermesChatBackend(base: ReturnType<typeof backendIdentity>): CuratorBac
   };
 }
 
+async function openPiSession(
+  manager: typeof PiSessionManager,
+  cwd: string,
+  sessionId?: string,
+): Promise<PiSessionManager> {
+  if (!sessionId) return manager.create(cwd);
+  const existing = (await manager.list(cwd)).find(session => session.id === sessionId);
+  if (!existing) throw Error('Pi curator session not found');
+  return manager.open(existing.path);
+}
+
 async function curateWithPi(
   config: CuratorConfig,
   system: string,
   payload: unknown,
+  sessionId?: string,
 ): Promise<CuratorResult> {
-  const [{completeSimple}, {AuthStorage, ModelRegistry}] = await Promise.all([
-    import('@earendil-works/pi-ai'),
-    import('@earendil-works/pi-coding-agent'),
-  ]);
+  const sdk = await import('@earendil-works/pi-coding-agent');
+  const {AuthStorage, ModelRegistry, SessionManager, createAgentSession} = sdk;
+  const {DefaultResourceLoader} = sdk as typeof sdk & {
+    DefaultResourceLoader: new(options: Record<string, unknown>) => NonNullable<Parameters<typeof createAgentSession>[0]>['resourceLoader'];
+  };
   const auth = AuthStorage.create();
   const registry = ModelRegistry.inMemory(auth);
-  const model = registry.find(config.curatorProvider, config.curatorModel);
-  if (!model) throw Error('Unknown Pi curator model/provider');
+  const registeredModel = registry.find(config.curatorProvider, config.curatorModel);
+  if (!registeredModel) throw Error('Unknown Pi curator model/provider');
 
   const apiKey = await auth.getApiKey(config.curatorProvider, {includeFallback: false});
   if (!apiKey) throw Error('Configure curator authentication through Pi login');
 
-  const result = await completeSimple(
-    model,
-    {
+  const cwd = process.cwd();
+  const agentDir = mkdtempSync(join(tmpdir(), 'categorizer-pi-agent-'));
+  let session: Awaited<ReturnType<typeof createAgentSession>>['session'] | undefined;
+  try {
+    const sessionManager = await openPiSession(SessionManager, cwd, sessionId);
+    const resourceLoader = new DefaultResourceLoader({
+      cwd,
+      agentDir,
+      noExtensions: true,
+      noSkills: true,
+      noPromptTemplates: true,
+      noThemes: true,
+      noContextFiles: true,
       systemPrompt: system,
-      messages: [{role: 'user', content: JSON.stringify(payload), timestamp: Date.now()}],
+    });
+    const model = {...registeredModel, maxTokens: Math.min(registeredModel.maxTokens, config.maxTokens)};
+    ({session} = await createAgentSession({
+      cwd,
+      agentDir,
+      authStorage: auth,
+      modelRegistry: registry,
+      model,
+      sessionManager,
+      resourceLoader,
+      noTools: 'all',
       tools: [],
-    },
-    {
-      apiKey,
-      maxTokens: config.maxTokens,
-      maxRetries: 0,
-      transport: 'sse',
-      reasoning: 'medium',
-      signal: AbortSignal.timeout(config.timeoutMs),
-    },
-  );
-  const text = result.content.filter(item => item.type === 'text').map(item => item.text).join('\n');
-  if (Buffer.byteLength(text) > config.maxOutputBytes) throw Error('curator output exceeds byte limit');
-  return {text, model: result.model, raw: result};
+    }));
+
+    let timedOut = false;
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      void session?.abort();
+    }, config.timeoutMs);
+    try {
+      await session.prompt(JSON.stringify(payload), {source: 'extension'});
+    } finally {
+      clearTimeout(timeout);
+    }
+    if (timedOut) throw Error('curator timeout');
+
+    const result = [...session.messages].reverse().find(message => message.role === 'assistant');
+    if (!result || result.stopReason !== 'stop') throw Error('curator did not finish');
+    const text = result.content.filter(item => item.type === 'text').map(item => item.text).join('\n');
+    if (Buffer.byteLength(text) > config.maxOutputBytes) throw Error('curator output exceeds byte limit');
+    return {text, model: result.model, raw: result, sessionId: session.sessionId};
+  } finally {
+    session?.dispose();
+    rmSync(agentDir, {recursive: true, force: true});
+  }
 }
 
 function piBackend(config: CuratorConfig, base: ReturnType<typeof backendIdentity>): CuratorBackend {
   return {
-    identity: () => ({...base, adapter: 'pi-complete-simple-v1', sdk: '0.78.1'}),
-    curate: (system, payload) => curateWithPi(config, system, payload),
+    identity: () => ({...base, adapter: 'pi-agent-session-v1', sdk: '0.78.1'}),
+    curate: (system, payload, sessionId) => curateWithPi(config, system, payload, sessionId),
   };
 }
 

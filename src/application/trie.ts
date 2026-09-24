@@ -45,6 +45,7 @@ export interface Progress {
   path: Node[];
   steps: Step[];
   attemptedParents: string[];
+  curatorSessionId?: string;
   terminalReason?: string;
 }
 
@@ -65,14 +66,26 @@ export interface State {
   taxonomies: Taxonomy[];
   progress: Progress[];
   decisions: unknown[];
+  seedCuratorSessionId?: string;
   ignoredAddTargets: CleanupAudit[];
   limited: boolean;
+}
+
+export interface CuratorResponse {
+  text: string;
+  sessionId?: string;
 }
 
 export interface Ports {
   save(): void;
   judge(request: Request, maxCalls: number): Promise<JevResult>;
-  curate(phase: 'seed' | 'child', system: string, payload: unknown, maxCalls: number): Promise<string>;
+  curate(
+    phase: 'seed' | 'child',
+    system: string,
+    payload: unknown,
+    maxCalls: number,
+    sessionId?: string,
+  ): Promise<string | CuratorResponse>;
 }
 
 export const initialState = (): State => ({
@@ -101,10 +114,17 @@ async function requestDefinitions(
   parentId: string | null,
   records: RecordInput[],
   judgment?: unknown,
+  sessionId?: string,
+  onSessionId?: (sessionId: string) => void,
 ): Promise<Definition[]> {
   const system = snapshot.prompts[phase === 'seed' ? 'seed' : 'curator'];
   const payload = curatorPayload(taxonomy, parentId, records, snapshot.policy, judgment);
-  const raw = await ports.curate(phase, system, payload, snapshot.policy.maxCalls);
+  const response = await ports.curate(phase, system, payload, snapshot.policy.maxCalls, sessionId);
+  const raw = typeof response === 'string' ? response : response.text;
+  if (typeof response !== 'string' && response.sessionId) {
+    onSessionId?.(response.sessionId);
+    ports.save();
+  }
   const cleaned = cleanProposal(JSON.parse(raw));
   const recordIds = records.map(record => record.id);
 
@@ -146,6 +166,11 @@ async function initializeTaxonomy(
     undefined,
     null,
     snapshot.inputs.slice(0, snapshot.policy.seedSize),
+    undefined,
+    state.seedCuratorSessionId,
+    sessionId => {
+      state.seedCuratorSessionId = sessionId;
+    },
   );
   state.taxonomies.push(freezeRoots(definitions, snapshot.policy));
   ports.save();
@@ -178,6 +203,10 @@ async function handleCuration(
     parentId,
     [record],
     progress.steps.at(-1)?.judgment,
+    progress.curatorSessionId,
+    sessionId => {
+      progress.curatorSessionId = sessionId;
+    },
   );
   const refinement = resolveRefinement(taxonomy, parentId, definitions, snapshot.policy);
   if (refinement.kind === 'retain') {

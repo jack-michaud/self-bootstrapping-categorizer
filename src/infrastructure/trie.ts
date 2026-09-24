@@ -8,7 +8,7 @@ import {Store, hash, type Journal} from '../store.ts';
 import {providers, type Providers} from '../providers.ts';
 import {Policy, Definition} from '../domain/trie.ts';
 import {prompts} from '../domain/prompts.ts';
-import {initialState, runTrie, type Snapshot, type State, type Ports} from '../application/trie.ts';
+import {initialState, runTrie, type Snapshot, type State, type Ports, type CuratorResponse} from '../application/trie.ts';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const Settings = z.object({
@@ -104,16 +104,17 @@ async function curateWithStore(
   system: string,
   payload: unknown,
   maxCalls: number,
-): Promise<string> {
+  sessionId?: string,
+): Promise<CuratorResponse> {
   if (hash(provider.curatorIdentity?.() ?? null) !== hash(store.state.snapshot.curatorIdentity ?? null)) {
     throw Error('curator runtime identity changed');
   }
 
   const response = await store.call(
     'trie:' + phase,
-    {system, payload},
+    {system, payload, sessionId},
     maxCalls,
-    () => provider.curate(system, payload),
+    () => provider.curate(system, payload, sessionId),
   );
   if (response.model !== config.curatorModel) throw Error('curator model identity mismatch');
 
@@ -122,10 +123,13 @@ async function curateWithStore(
   if (typeof response.text !== 'string' || Buffer.byteLength(response.text) > config.maxOutputBytes) {
     throw Error('curator output limit');
   }
+  if (response.sessionId !== undefined && (typeof response.sessionId !== 'string' || !response.sessionId)) {
+    throw Error('invalid curator session ID');
+  }
 
   store.state.pins.curator = response.model;
   store.save();
-  return response.text;
+  return {text: response.text, sessionId: response.sessionId};
 }
 
 export function triePorts(store: Store<Snapshot>, provider: Providers): Ports {
@@ -133,8 +137,8 @@ export function triePorts(store: Store<Snapshot>, provider: Providers): Ports {
   return {
     save: () => store.save(),
     judge: (request, maxCalls) => judgeWithStore(store, provider, request, maxCalls),
-    curate: (phase, system, payload, maxCalls) =>
-      curateWithStore(store, provider, config, phase, system, payload, maxCalls),
+    curate: (phase, system, payload, maxCalls, sessionId) =>
+      curateWithStore(store, provider, config, phase, system, payload, maxCalls, sessionId),
   };
 }
 

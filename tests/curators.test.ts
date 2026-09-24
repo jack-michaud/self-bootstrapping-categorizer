@@ -10,11 +10,25 @@ const cfg=Config.parse({});
 test('explicit backend selection, lazy Pi imports and unavailable chat fail closed',async()=>{
   expect(cfg.curatorBackend).toBe('hermes-native');
   expect(()=>Config.parse({curatorBackend:'shell'})).toThrow();
-  expect(curatorBackend({...cfg,curatorBackend:'pi'}).identity()).toMatchObject({backend:'pi',sdk:'0.78.1'});
+  expect(curatorBackend({...cfg,curatorBackend:'pi'}).identity()).toMatchObject({backend:'pi',adapter:'pi-agent-session-v1',sdk:'0.78.1'});
   expect(()=>providers({...cfg,hermesRuntimePath:'/missing-runtime',mode:'assessment'})).not.toThrow();
   await expect(curatorBackend({...cfg,curatorBackend:'hermes-chat'}).curate('x',{})).rejects.toThrow(CHAT_LIMITATION);
   const source=readFileSync(new URL('../src/providers.ts',import.meta.url),'utf8');
   expect(source).not.toContain('pi-ai');expect(source).not.toContain('pi-coding-agent');
+});
+test('provider adapter forwards Pi session IDs and returns the updated session',async()=>{
+  let receivedSessionId:string|undefined;
+  const adapter={
+    identity:()=>({adapter:'fixture'}),
+    async curate(_system:string,_payload:unknown,sessionId?:string){
+      receivedSessionId=sessionId;
+      return {text:'{}',model:cfg.curatorModel,raw:{},sessionId:'pi-session-next'};
+    },
+  };
+  const provider=providers({...cfg,curatorBackend:'pi'},adapter);
+  const result=await provider.curate('SYSTEM',{fixture:true},'pi-session-prior');
+  expect(receivedSessionId).toBe('pi-session-prior');
+  expect(result.sessionId).toBe('pi-session-next');
 });
 test('strict response envelope rejects banners/unknown fields/stops and retains model text for validation',()=>{
   const valid={protocol:1,text:'{"actions":[]}',model:'fixture',modelIdentity:'response',stopReason:'stop',usage:null};
