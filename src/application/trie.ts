@@ -250,6 +250,24 @@ export async function runTrie(snapshot: Snapshot, state: State, ports: Ports, mo
   if (state.status === 'complete' || (state.status === 'limited' && state.cursor === snapshot.inputs.length)) return;
   if (state.status === 'blocked') return;
 
+  // My desired flow looks like this:
+  // - A snapshot determines the seeded set of category names and descriptions proposed by the curator.
+  // - The rest of the dataset iteration begins. 
+  //   - For each new item, the jev judge returns a probability for each category via its list of nouls.
+  //   - Evaluate the category.
+  //     - Select the top categories by probability. 
+  //     - If there's a <80% for the max noul, a new category should be proposed.
+  //   - If a new category should be proposed, run the curator.
+  //     - The curator should be given the context on the existing categories, the new example, and options to add a new top
+  //       level categories or to update the description of the top level category to support this new example.
+  //     - The jev judge is run again with the new category. If the new category is not selected from the evaluated category, reprompt the curator in the same conversation.
+  //       - The curator should be given the failing category name and description, explain that the proposed category was not selected and so the description should be updated to more accurately capture the example's category. Do not mention other categories in the description.
+  //       - This process should be done a maximum of 3 times, and if it fails, fall back to old top category but log the failure as a "failed to recategorize" warning
+  //   - Once the new category is determined, update the taxonomy and continue to the next example
+  //
+  // Note: the nested categories are not in this flow right now. This is intentional: getting this core flow down is the first step.
+
+
   state.status = 'running';
   delete state.error;
   delete state.stopReason;
