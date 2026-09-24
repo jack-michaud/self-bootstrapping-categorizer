@@ -1,0 +1,3 @@
+{"id":"review","text":"Review this module and recommend ways to simplify its architecture. Do not change source files.","metadata":{"source":"synthetic-example"}}
+{"id":"edit","text":"Modify the implementation to remove duplicate branches, and run the tests.","metadata":{"source":"synthetic-example"}}
+{"id":"broad","text":"Explain how this program works without recommending a specific change.","metadata":{"source":"synthetic-example"}}

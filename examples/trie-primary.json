@@ -1,0 +1,4 @@
+[
+  {"name":"Interprets code","description":"Understands or assesses code, including explanation and review. Does not require modifying code."},
+  {"name":"Edits code","description":"Changes code to implement or repair behavior. Excludes explanation or review without actual edits."}
+]

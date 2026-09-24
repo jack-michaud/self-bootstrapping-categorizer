@@ -1,5 +1,9 @@
 # Vision: self-bootstrapping categorization
 
+## Implementation modes
+
+The original flat workflow described below remains available unchanged in its categorization semantics. The explicit `trie` CLI adds a broad-first state machine with pure, human-owned domain rules and prompts, application ports, and infrastructure adapters. See [the domain guide](docs/domain-guide.md) for its current decision table, source/policy snapshots, operational commands and ownership. It freezes roots before classification, uses sibling-only ancestor-scoped judgments, and preserves parent assignments through bounded current-record refinement. No runtime reviewer, earlier-record replay or final sweep is introduced. Offline fixtures verify execution contracts, not classification quality.
+
 ## Purpose and scope
 
 Discover useful categories for arbitrary text without requiring the user to know the complete taxonomy in advance. A reasoning-model curator proposes evidence-backed categories; TypeSafe Jev supplies typed judgments; ordinary code owns execution and validation. The product is a standalone, resumable Bun/TypeScript CLI and library, not a persistent agent conversation or hosted service.

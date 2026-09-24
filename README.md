@@ -63,6 +63,20 @@ bun src/cli.ts run --input examples/records.jsonl --run-dir runs/assessment \
 
 Manual categories are an array of `{id,name,description}`. In discovery mode, `--categories` skips seed generation but still permits additions. See `bun src/cli.ts help` for all commands and the [config schema](src/contracts.ts) for settings.
 
+## Broad-first trie mode
+
+For hierarchical categories with human-editable domain rules, use the explicit `trie` command. It freezes broad roots, classifies among siblings with full ancestor context, and refines only the current record. A valid parent remains an assignment when refinement is uncertain or unnecessary. The flat commands below retain their existing behavior.
+
+```sh
+bun src/cli.ts trie help
+bun src/cli.ts trie run --input examples/trie-records.jsonl \
+  --categories examples/trie-primary.json --config examples/trie-config.json \
+  --run-dir runs/trie-demo --allow-external
+bun src/cli.ts trie inspect --run-dir runs/trie-demo
+```
+
+These run commands use live providers and can incur charges. Omit `--categories` for curator-seeded roots. See the [domain guide](docs/domain-guide.md) for Jack's exact edit surface, ownership, decision table, configuration, export/resume and offline fixture tests. Policy edits create new conditions; incompatible runs are never silently migrated.
+
 ## Inspect and export
 
 ```sh

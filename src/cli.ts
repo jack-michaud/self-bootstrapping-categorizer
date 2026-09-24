@@ -14,6 +14,7 @@ export function sourceHash(){
   return hash(files.map(p=>[p,readFileSync(join(root,p),'utf8')]));
 }
 const help=`Bootstrap Categorizer (Bun)
+trie help (broad-first hierarchical categorization; independent domain policy)
 run --input records.jsonl|- --run-dir runs/new [--config config.json]
     [--categories categories.json | --categories-json '[{"id":"x","name":"...","description":"..."}]']
     [--seed-prompt file] [--curator-prompt file] [--reviewer-prompt file] [--judgment-prompt file]
@@ -33,7 +34,7 @@ only when --allow-external is supplied; auth comes from environment/selected bac
 function load(path:string){return JSON.parse(readFileSync(path,'utf8'));}
 function manifest<T>(dir:string):Journal<T>{const m=load(join(dir,'manifest.json'));if(m.schema!==1||hash(m.snapshot)!==m.snapshotHash)throw Error('invalid snapshot');return m;}
 export async function main(args=process.argv.slice(2)) {
-  const command=args[0];if(!command||['help','--help','-h'].includes(command)){console.log(help);return;}
+  const command=args[0];if(command==='trie'){const {trieMain}=await import('./infrastructure/trie.ts');return trieMain(args.slice(1));}if(!command||['help','--help','-h'].includes(command)){console.log(help);return;}
   const {values:v}=parseArgs({args:args.slice(1),strict:true,options:{input:{type:'string'},'run-dir':{type:'string'},'eval-dir':{type:'string'},'eval-dirs':{type:'string'},config:{type:'string'},categories:{type:'string'},'categories-json':{type:'string'},'seed-prompt':{type:'string'},'curator-prompt':{type:'string'},'reviewer-prompt':{type:'string'},'judgment-prompt':{type:'string'},'normalization-prompt':{type:'string'},mode:{type:'string'},'max-categories':{type:'string'},truth:{type:'string'},out:{type:'string'},'allow-external':{type:'boolean'}}});
   const req=(k:keyof typeof v)=>{const x=v[k];if(typeof x!=='string'||!x)throw Error(`--${k} required`);return x;};
   const consent=()=>{if(!v['allow-external'])throw Error('--allow-external required: inputs/prompts are sent to external providers');};
