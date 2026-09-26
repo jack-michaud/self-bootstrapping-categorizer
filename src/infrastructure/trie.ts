@@ -39,7 +39,6 @@ export function policySource() {
     'src/infrastructure/trie.ts',
     'src/providers.ts',
     'src/curators.ts',
-    'src/hermes_native.py',
     'src/store.ts',
     ...domainSourcePaths(),
   ];

@@ -1,5 +1,5 @@
 {
-  "curatorBackend": "hermes-native",
+  "curatorBackend": "pi",
   "curatorProvider": "openai-codex",
   "curatorModel": "gpt-6-astra",
   "jevModel": "jev-latest",

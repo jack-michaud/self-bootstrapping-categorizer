@@ -114,17 +114,13 @@ Successful identical calls are cached only within their run identity. Snapshots 
 
 Terminal outcomes distinguish record exhaustion, category/call limits and provider/validation failures. Other and Unclear may remain even in a completed run. Deprecated `maxRounds`, `review` and reviewer-prompt settings are accepted for compatibility/provenance but do not enable review or rounds. A stale lock after abnormal exit requires operator reconciliation, not automatic deletion of a potentially live owner's lock.
 
-## Isolated curator adapters
+## Curator provider
 
-Each inference call receives a fresh, tool-free context containing only the supplied system prompt and payload, not a persistent conversation, repository instructions, skills, memory or evaluation truth.
+The Pi SDK is the sole curator backend. It uses existing Pi authentication, disables tools, extensions, skills, prompt templates, themes and project context files, and supplies the frozen system prompt plus curator payload. Pi's `SessionManager` persists the conversation transcript locally; the run journal stores the session ID and uses it to resume the same curation conversation. The session ID is not provider-server-side storage.
 
-- **`hermes-native`:** a minimal native-runtime adapter using existing authentication, a fresh subprocess, empty temporary working directory, environment allowlist and direct Responses call with `tools: []`, `store: false` and zero inference retries. It currently supports `openai-codex` and requires a compatible separately installed Hermes runtime. It does not instantiate an agent session or migrate credentials.
-- **`pi`:** optional, lazy-loaded SDK using existing Pi authentication, a fresh single-message context, no tools and zero inference retries. Selecting native does not load Pi authentication.
-- **`hermes-chat`:** fails closed because an empty CLI toolset is not a supported isolation guarantee. No silent transport fallback is allowed.
+Curator calls have time and output bounds, and `maxTokens` applies to Pi. These controls do not guarantee token charges or constitute an adversarial OS sandbox. Treat the installed Pi SDK and injected provider implementations as trusted dependencies.
 
-Calls have time and output bounds. Native execution also bounds stream bytes; `maxTokens` applies to Pi, not the native Codex endpoint. These controls constrain execution but do not guarantee token charges or constitute an adversarial OS sandbox. Treat installed runtimes and injected provider implementations as trusted dependencies.
-
-See [seed instructions](prompts/seed.md), [curator instructions](prompts/curator.md), [judgment instructions](prompts/judgment.md) and the [native adapter](src/hermes_native.py).
+See [seed instructions](prompts/seed.md), [curator instructions](prompts/curator.md) and [judgment instructions](prompts/judgment.md).
 
 ## Evaluation is separate from discovery
 

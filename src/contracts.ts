@@ -157,8 +157,7 @@ export function applyProposal(
 }
 
 export const ProviderConfig = z.object({
-  curatorBackend: z.enum(['pi', 'hermes-chat', 'hermes-native']).default('hermes-native'),
-  hermesRuntimePath: z.string().min(1).optional(),
+  curatorBackend: z.enum(['pi']).default('pi'),
   maxOutputBytes: z.number().int().min(1024).max(2000000).default(262144),
   jevModel: z.string().min(1).default('jev-latest'),
   jevUrl: z.url().default('https://api.typesafe.ai/v1/systemone'),

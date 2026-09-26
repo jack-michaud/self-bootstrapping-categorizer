@@ -19,10 +19,9 @@ bun src/cli.ts help
 
 For live classification, supply `TYPESAFE_API_KEY` through your environment.
 
-Discovery also requires a separately installed, compatible curator runtime. Currently supported:
-- **Hermes Python runtime**
+Discovery uses the Pi SDK curator backend and existing Pi authentication. Configure curator access through Pi login; the SDK persists curator conversation sessions locally and the run journal stores their session IDs for resumption.
 
-The [example config](examples/discovery-config.json) selects `hermes-native`, `openai-codex`, `gpt-6-astra` and `jev-latest`, with a 40-record seed sample, 100-category ceiling and 150 provider-attempt budget.
+The [example config](examples/discovery-config.json) selects the `pi` backend, `openai-codex`, `gpt-6-astra` and `jev-latest`, with a 40-record seed sample, 100-category ceiling and 150 provider-attempt budget.
 
 Run the bundled synthetic example:
 
